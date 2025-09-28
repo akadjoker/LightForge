@@ -10,6 +10,47 @@ namespace irr
     namespace scene
     {
 
+
+            void MeshComponent::OnReady()
+            {
+                owner->Box.addInternalBox(mesh->getBoundingBox());
+            }
+
+            void MeshComponent::setColor(u8 r, u8 g, u8 b,u8 a)
+            {
+                owner->getSceneManager()->getMeshManipulator()->setVertexColors(mesh,video::SColor(255,r,g,b));
+            }
+
+
+
+            core::matrix4 TransformComponent::getLocalMatrix() const
+			{
+				core::matrix4 worldMatrix;
+				worldMatrix.setTranslation(position);
+
+				core::matrix4 rotMatrix;
+				rotMatrix.setRotationDegrees(rotation);
+
+				core::matrix4 scaleMatrix;
+				scaleMatrix.setScale(scale);
+
+				return worldMatrix * rotMatrix * scaleMatrix;
+			}
+
+			core::matrix4 TransformComponent::getWorldMatrix() const
+			{
+				core::matrix4 local = getLocalMatrix();
+				if (owner && owner->getParent())
+				{
+					ISceneNode *parent = owner->getParent();
+					TransformComponent *parentTransform = parent->getComponent<TransformComponent>();
+					if (parentTransform)
+						return parentTransform->getWorldMatrix() * local;
+				}
+
+				return local;
+			}
+
         ISceneNode::ISceneNode(ISceneNode *parent, ISceneManager *mgr, s32 id,
                                const core::vector3df &position,
                                const core::vector3df &rotation,
@@ -24,7 +65,7 @@ namespace irr
              if (parent)
                  parent->addChild(this);
 
-            setAutomaticCulling(scene::EAC_OFF);
+ //           setAutomaticCulling(scene::EAC_OFF);
  
 
             updateAbsolutePosition();
@@ -44,6 +85,9 @@ namespace irr
         {
             if (IsVisible)
             {
+                
+                
+                //todo define type by compont
         
                 SceneManager->registerNodeForRendering(this, ESNRP_SOLID);
 
@@ -88,15 +132,36 @@ namespace irr
 
 
             
-                    auto cmtIt = components.getIterator();
-                    for (; !cmtIt.atEnd(); cmtIt++)
-                    {
-                        if (cmtIt.getNode()->getValue())
-                            cmtIt.getNode()->getValue()->OnAnimate(deltaTime);
-                    }
+                auto cmtIt = components.getIterator();
+                for (; !cmtIt.atEnd(); cmtIt++)
+                {
+                    if (cmtIt.getNode()->getValue())
+                        cmtIt.getNode()->getValue()->OnAnimate(deltaTime);
+                }
 
                   //  printf("animate components: %d\n", components.size());
             }
+        }
+
+        bool ISceneNode::OnEvent(const SEvent &event)
+        {
+            // Pass event to components
+           // printf("event components: %d\n", components.size());
+            auto cmtIt = components.getIterator();
+            for (; !cmtIt.atEnd(); cmtIt++)
+            {
+                if (cmtIt.getNode()->getValue())
+                {
+                    if (cmtIt.getNode()->getValue()->OnEvent(event))
+                        return true;
+                }
+            }
+            // for (auto it = Children.begin(); it != Children.end(); ++it)
+            // {
+            //     if ((*it)->OnEvent(event))
+            //         return true;
+            // }
+            return false;
         }
 
         void ISceneNode::render()
@@ -104,6 +169,13 @@ namespace irr
 
             
             if (!IsVisible)        return;
+
+            auto cmtIt = components.getIterator();
+            for (; !cmtIt.atEnd(); cmtIt++)
+            {
+                if (cmtIt.getNode()->getValue())
+                    cmtIt.getNode()->getValue()->Render();
+            }
             
             //printf("render components: %d\n", components.size());
             video::IVideoDriver*    Driver = SceneManager->getVideoDriver();
@@ -170,7 +242,19 @@ namespace irr
         const core::aabbox3d<f32> ISceneNode::getTransformedBoundingBox() const
         {
             core::aabbox3d<f32> _box = getBoundingBox();
-            AbsoluteTransformation.transformBoxEx(_box);
+
+
+            if (components.size())
+            {
+
+                TransformComponent* tras = getComponent<TransformComponent>();
+                if(tras)
+                {
+                    tras->getWorldMatrix().transformBoxEx(_box);
+                }
+            }
+
+            //AbsoluteTransformation.transformBoxEx(_box);
             return _box;
         }
 
@@ -245,6 +329,7 @@ namespace irr
                 auto *node = it.getNode();
                 if (node->getValue())
                 {
+                    node->getValue()->OnDestroy();
                     delete node->getValue();
                     node->setValue(0);
                 }
@@ -325,40 +410,7 @@ namespace irr
         scene::ISceneNode *ISceneNode::getParent() const { return Parent; }
         ESCENE_NODE_TYPE ISceneNode::getType() const { return Type; }
 
-        void ISceneNode::serializeAttributes(io::IAttributes *out, io::SAttributeReadWriteOptions *) const
-        {
-            if (!out)
-                return;
-            out->addString("Name", Name.c_str());
-            out->addInt("Id", ID);
-            out->addVector3d("Position", getPosition());
-            out->addVector3d("Rotation", getRotation());
-            out->addVector3d("Scale", getScale());
-            out->addBool("Visible", IsVisible);
-            out->addInt("AutomaticCulling", AutomaticCullingState);
-            out->addInt("DebugDataVisible", DebugDataVisible);
-            out->addBool("IsDebugObject", IsDebugObject);
-        }
-
-        void ISceneNode::deserializeAttributes(io::IAttributes *in, io::SAttributeReadWriteOptions *)
-        {
-            if (!in)
-                return;
-            Name = in->getAttributeAsString("Name");
-            ID = in->getAttributeAsInt("Id");
-            setPosition(in->getAttributeAsVector3d("Position"));
-            setRotation(in->getAttributeAsVector3d("Rotation"));
-            setScale(in->getAttributeAsVector3d("Scale"));
-            IsVisible = in->getAttributeAsBool("Visible");
-            s32 tmpState = in->getAttributeAsEnumeration("AutomaticCulling", scene::AutomaticCullingNames);
-            if (tmpState != -1)
-                AutomaticCullingState = (u32)tmpState;
-            else
-                AutomaticCullingState = in->getAttributeAsInt("AutomaticCulling");
-            DebugDataVisible = in->getAttributeAsInt("DebugDataVisible");
-            IsDebugObject = in->getAttributeAsBool("IsDebugObject");
-            updateAbsolutePosition();
-        }
+        
 
         ISceneNode *ISceneNode::clone(ISceneNode *, ISceneManager *) { return 0; }
         ISceneManager *ISceneNode::getSceneManager(void) const { return SceneManager; }

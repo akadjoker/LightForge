@@ -18,12 +18,9 @@ namespace irr
 
 #include "CNullDriver.h"
 #include "IMaterialRendererServices.h"
-// also includes the OpenGL stuff
 #include "COpenGLExtensionHandler.h"
 
-#ifdef _IRR_COMPILE_WITH_CG_
-#include "Cg/cg.h"
-#endif
+ 
 
 namespace irr
 {
@@ -434,6 +431,7 @@ namespace video
 		//! \param[in] lightIndex: the index of the requesting light
 		void assignHardwareLight(u32 lightIndex);
 
+		void renderPoints( u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType);
 		void renderArray(const void* indices, GLenum indexType, u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType);
 		void renderInstance(const void* indices, GLenum indexType, u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType, u32 instanceCount);
 

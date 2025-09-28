@@ -13,8 +13,7 @@
 #include "dimension2d.h"
 #include "SColor.h"
 #include "ESceneNodeTypes.h"
-
-#include "SceneParameters.h"
+ 
 #include "IGeometryCreator.h"
 #include "IShaderManager.h"
 #include "IMeshManipulator.h"
@@ -37,6 +36,7 @@ namespace irr
 	{
 		class IGUIFont;
 		class IGUIEnvironment;
+		class ICursorControl;
 	} // end namespace gui
 
 	namespace video
@@ -146,6 +146,8 @@ namespace irr
 			/** \return Pointer to the FileSystem
 			This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 			virtual io::IFileSystem *getFileSystem() = 0;
+
+			virtual gui::ICursorControl* getCursorControl() = 0;
 
 			//! Adds a camera scene node to the scene graph and sets it as active camera.
 			/** This camera does not react on user input like for example the one created with
@@ -378,13 +380,7 @@ namespace irr
 			/** All scene nodes are removed. */
 			virtual void clear() = 0;
 
-			//! Get interface to the parameters set in this scene.
-			/** String parameters can be used by plugins and mesh loaders.
-			For example the CMS and LMTS loader want a parameter named 'CSM_TexturePath'
-			and 'LMTS_TexturePath' set to the path were attached textures can be found. See
-			CSM_TEXTURE_PATH, LMTS_TEXTURE_PATH, MY3D_TEXTURE_PATH,
-			COLLADA_CREATE_SCENE_INSTANCES, DMF_TEXTURE_PATH and DMF_USE_MATERIALS_DIRS*/
-			virtual io::IAttributes *getParameters() = 0;
+ 
 
 			//! Get current render pass.
 			/** All scene nodes are being rendered in a specific order.

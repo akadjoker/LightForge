@@ -169,6 +169,7 @@ namespace scene
 	typedef CVertexBuffer<video::S3DVertex> SVertexBuffer;
 	typedef CVertexBuffer<video::S3DVertex2TCoords> SVertexBufferLightMap;
 	typedef CVertexBuffer<video::S3DVertexTangents> SVertexBufferTangents;
+	typedef CVertexBuffer<video::S3DLinesVertex> SVertexLinesBuffer;
 }
 }
 

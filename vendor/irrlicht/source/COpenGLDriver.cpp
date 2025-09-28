@@ -1012,20 +1012,7 @@ bool COpenGLDriver::genericDriverInit()
 	}
 	else
 		os::Printer::log("GLSL not available.", ELL_INFORMATION);
-	DriverAttributes->setAttribute("MaxTextures", MaxTextureUnits);
-	DriverAttributes->setAttribute("MaxSupportedTextures", MaxSupportedTextures);
-	DriverAttributes->setAttribute("MaxLights", MaxLights);
-	DriverAttributes->setAttribute("MaxAnisotropy", MaxAnisotropy);
-	DriverAttributes->setAttribute("MaxUserClipPlanes", MaxUserClipPlanes);
-	DriverAttributes->setAttribute("MaxAuxBuffers", MaxAuxBuffers);
-	DriverAttributes->setAttribute("MaxMultipleRenderTargets", MaxMultipleRenderTargets);
-	DriverAttributes->setAttribute("MaxIndices", (s32)MaxIndices);
-	DriverAttributes->setAttribute("MaxTextureSize", (s32)MaxTextureSize);
-	DriverAttributes->setAttribute("MaxGeometryVerticesOut", (s32)MaxGeometryVerticesOut);
-	DriverAttributes->setAttribute("MaxTextureLODBias", MaxTextureLODBias);
-	DriverAttributes->setAttribute("Version", Version);
-	DriverAttributes->setAttribute("ShaderLanguageVersion", ShaderLanguageVersion);
-	DriverAttributes->setAttribute("AntiAlias", AntiAlias);
+ 
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -1604,7 +1591,12 @@ void COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer* mb)
 	if (perInstanceBufferPresent)
 		renderInstance(hwIndexBuffer ? 0 : indexData, indexType, primitiveCount, primitiveType, instanceVertexCount);
 	else
+	{
 		renderArray(hwIndexBuffer ? 0 : indexData, indexType, primitiveCount, primitiveType);
+
+		//renderPoints(primitiveCount, primitiveType);
+
+	}
 
 	LastVertexDescriptor = descriptor;
 
@@ -1724,6 +1716,85 @@ void COpenGLDriver::renderArray(const void* indices, GLenum indexType, u32 primi
 	}
 }
 
+
+void COpenGLDriver::renderPoints( u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType)
+{
+	switch (primitiveType)
+	{
+		case scene::EPT_POINTS:
+		case scene::EPT_POINT_SPRITES:
+		{
+#ifdef GL_ARB_point_sprite
+			if (primitiveType == scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
+				glEnable(GL_POINT_SPRITE_ARB);
+#endif
+
+			// prepare size and attenuation (where supported)
+			GLfloat particleSize=Material.Thickness;
+//			if (AntiAlias)
+//				particleSize=core::clamp(particleSize, DimSmoothedPoint[0], DimSmoothedPoint[1]);
+//			else
+				particleSize=core::clamp(particleSize, DimAliasedPoint[0], DimAliasedPoint[1]);
+#if defined(GL_VERSION_1_4) || defined(GL_ARB_point_parameters) || defined(GL_EXT_point_parameters) || defined(GL_SGIS_point_parameters)
+			const float att[] = {1.0f, 1.0f, 0.0f};
+#if defined(GL_VERSION_1_4)
+			extGlPointParameterfv(GL_POINT_DISTANCE_ATTENUATION, att);
+//			extGlPointParameterf(GL_POINT_SIZE_MIN,1.f);
+			extGlPointParameterf(GL_POINT_SIZE_MAX, particleSize);
+			extGlPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE, 1.0f);
+#elif defined(GL_ARB_point_parameters)
+			extGlPointParameterfv(GL_POINT_DISTANCE_ATTENUATION_ARB, att);
+//			extGlPointParameterf(GL_POINT_SIZE_MIN_ARB,1.f);
+			extGlPointParameterf(GL_POINT_SIZE_MAX_ARB, particleSize);
+			extGlPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE_ARB, 1.0f);
+#elif defined(GL_EXT_point_parameters)
+			extGlPointParameterfv(GL_DISTANCE_ATTENUATION_EXT, att);
+//			extGlPointParameterf(GL_POINT_SIZE_MIN_EXT,1.f);
+			extGlPointParameterf(GL_POINT_SIZE_MAX_EXT, particleSize);
+			extGlPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE_EXT, 1.0f);
+#elif defined(GL_SGIS_point_parameters)
+			extGlPointParameterfv(GL_DISTANCE_ATTENUATION_SGIS, att);
+//			extGlPointParameterf(GL_POINT_SIZE_MIN_SGIS,1.f);
+			extGlPointParameterf(GL_POINT_SIZE_MAX_SGIS, particleSize);
+			extGlPointParameterf(GL_POINT_FADE_THRESHOLD_SIZE_SGIS, 1.0f);
+#endif
+#endif
+			glPointSize(particleSize);
+
+#ifdef GL_ARB_point_sprite
+			if (primitiveType == scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
+				glTexEnvf(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE, GL_TRUE);
+#endif
+			glDrawArrays(GL_POINTS, 0, primitiveCount);
+#ifdef GL_ARB_point_sprite
+			if (primitiveType == scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
+			{
+				glDisable(GL_POINT_SPRITE_ARB);
+				glTexEnvf(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE, GL_FALSE);
+			}
+#endif
+		}
+			break;
+		case scene::EPT_LINE_STRIP:
+			glDrawArrays(GL_LINE_STRIP,0, primitiveCount + 1);
+			break;
+		case scene::EPT_LINE_LOOP:
+			glDrawArrays(GL_LINE_LOOP, 0,primitiveCount);
+			break;
+		case scene::EPT_LINES:
+			glDrawArrays(GL_LINES, 0,primitiveCount * 2);
+			break;
+		case scene::EPT_TRIANGLE_STRIP:
+			glDrawArrays(GL_TRIANGLE_STRIP,0, primitiveCount + 2);
+			break;
+		case scene::EPT_TRIANGLE_FAN:
+			glDrawArrays(GL_TRIANGLE_FAN,0, primitiveCount + 2);
+			break;
+		case scene::EPT_TRIANGLES:
+			glDrawArrays(GL_TRIANGLES, 0,primitiveCount * 3);
+			break;
+	}
+}
 bool COpenGLDriver::setActiveTexture(u32 stage, const video::ITexture* texture)
 {
 	if (stage >= MaxSupportedTextures)

@@ -9,9 +9,7 @@
 #define IRRLICHT_VERSION_MINOR 8
 #define IRRLICHT_VERSION_REVISION 0
 
-// This flag will be defined only in SVN, the official release code will have
-// it undefined
-//#define IRRLICHT_VERSION_SVN -alpha
+ 
 #define IRRLICHT_SDK_VERSION "1.8.0"
 
 #include <stdio.h> // TODO: Although included elsewhere this is required at least for mingw
@@ -76,6 +74,7 @@
     #define _IRR_POSIX_API_
 	#define _IRR_LINUX_PLATFORM
 	#define _IRR_COMPILE_WITH_SDL_DEVICE_
+	#define _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
 	//#define _IRR_COMPILE_WITH_X11_
 	//#define _IRR_COMPILE_WITH_X11_DEVICE_
 #endif

@@ -1,5 +1,5 @@
 #include <irrlicht.h>
-#include <CCameraSceneNode.h>
+#include "CLinesBatch.h"
 #include <iostream>
 #include <typeinfo>
 
@@ -11,15 +11,12 @@ using namespace io;
 
 static bool ABORT = false;
 
-
 class CShaderCallBack : public video::IShaderConstantSetCallBack
 {
- 
 
 public:
-    CShaderCallBack()  
+    CShaderCallBack()
     {
- 
     }
 
     virtual void OnSetConstants(video::IMaterialRendererServices *services, s32 userData, bool updateTransform) override
@@ -27,8 +24,6 @@ public:
     {
         if (!services)
             return;
-
- 
 
         // Obter matrizes
         core::matrix4 world = services->getVideoDriver()->getTransform(video::ETS_WORLD);
@@ -79,6 +74,41 @@ public:
         services->setPixelShaderConstant(index, &ambient.r, 4);
     }
 };
+
+
+
+class CShaderLinesCallBack : public video::IShaderConstantSetCallBack
+{
+
+public:
+    CShaderLinesCallBack()
+    {
+    }
+
+    virtual void OnSetConstants(video::IMaterialRendererServices *services, s32 userData, bool updateTransform) override
+
+    {
+        if (!services)
+            return;
+
+        // Obter matrizes
+        core::matrix4 world = services->getVideoDriver()->getTransform(video::ETS_WORLD);
+        core::matrix4 view = services->getVideoDriver()->getTransform(video::ETS_VIEW);
+        core::matrix4 projection = services->getVideoDriver()->getTransform(video::ETS_PROJECTION);
+
+        // Calcular matriz MVP
+        core::matrix4 mvp = projection * view * world;
+
+        // // Enviar para vertex shader
+        s32 index = services->getVertexShaderConstantID("uMVPMatrix");
+        if (index == -1)
+            std::cout << "uMVPMatrix index: " << index << std::endl;
+        services->setVertexShaderConstant(index, mvp.pointer(), 16);
+
+        
+    }
+};
+
 
 // Vertex Shader GLSL
 const c8 *VertexShader = R"(
@@ -159,7 +189,45 @@ void main()
 
 )";
 
+const c8 *VertexShaderLines = R"(
+ 
 
+
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in vec4 inColor;
+
+
+	
+uniform mat4 uMVPMatrix;
+
+out vec4 vColor;
+
+void main()
+{
+    gl_Position = uMVPMatrix * vec4(inPosition, 1.0);
+
+    vColor = inColor;
+
+}
+
+)";
+
+// Fragment Shader GLSL
+const c8 *FragmentShaderLines = R"(
+ 
+
+in vec4 vColor;
+
+out vec4 FragColor;
+
+void main()
+{
+
+
+    FragColor = vColor;
+}
+
+)";
 
 class MyEventReceiver : public IEventReceiver
 {
@@ -174,93 +242,27 @@ public:
         }
         else if (event.EventType == irr::EET_MOUSE_INPUT_EVENT)
         {
-            if (event.MouseInput.Event == EMIE_LMOUSE_PRESSED_DOWN)
-                MouseIsDown[0] = true;
-            else if (event.MouseInput.Event == EMIE_LMOUSE_LEFT_UP)
-                MouseIsDown[0] = false;
-            else if (event.MouseInput.Event == EMIE_RMOUSE_PRESSED_DOWN)
-                MouseIsDown[1] = true;
-            else if (event.MouseInput.Event == EMIE_RMOUSE_LEFT_UP)
-                MouseIsDown[1] = false;
-            else if (event.MouseInput.Event == EMIE_MMOUSE_PRESSED_DOWN)
-                MouseIsDown[2] = true;
-            else if (event.MouseInput.Event == EMIE_MMOUSE_LEFT_UP)
-                MouseIsDown[2] = false;
-
-            MouseIsMOved = false;
-            if (event.MouseInput.Event == EMIE_MOUSE_MOVED)
-            {
-                CursorPos.X = (f32)event.MouseInput.X;
-                CursorPos.Y = (f32)event.MouseInput.Y;
-                MouseIsMOved = true;
-            }
+        
         }
         return false;
     }
 
-    virtual core::position2d<f32> GetCursorPos() const
-    {
-        return CursorPos;
-    }
-
+    
     virtual bool IsKeyDown(EKEY_CODE keyCode) const
     {
         return KeyIsDown[keyCode];
     }
-
-    virtual bool IsMouseMoved() const
-    {
-        return MouseIsMOved;
-    }
-
-    virtual bool IsMouseDown(u32 button) const
-    {
-        if (button < 3)
-            return MouseIsDown[button];
-        return false;
-    }
+ 
 
     MyEventReceiver()
     {
-        for (u32 i = 0; i < KEY_KEY_CODES_COUNT; ++i)
-            KeyIsDown[i] = false;
+        
     }
 
 private:
     bool KeyIsDown[KEY_KEY_CODES_COUNT];
-    bool MouseIsDown[3] = {false, false, false};
-    core::position2d<f32> CursorPos;
-    bool MouseIsMOved = false;
+ 
 };
-
-f32 CameraYaw = 0.0f;   // Rotação horizontal
-f32 CameraPitch = 0.0f; // Rotação vertical
-
-core::vector3df GetCameraDirection()
-{
-    f32 yawRad = CameraYaw * core::DEGTORAD;
-    f32 pitchRad = CameraPitch * core::DEGTORAD;
-
-    core::vector3df direction;
-    direction.X = cos(pitchRad) * sin(yawRad);
-    direction.Y = -sin(pitchRad);
-    direction.Z = cos(pitchRad) * cos(yawRad);
-
-    return direction;
-}
-
-// Função para calcular vetor direito (para strafing)
-core::vector3df GetCameraRight()
-{
-    f32 yawRad = (CameraYaw + 90.0f) * core::DEGTORAD;
-
-    core::vector3df right;
-    right.X = sin(yawRad);
-    right.Y = 0.0f;
-    right.Z = cos(yawRad);
-
-    return right;
-}
 
 int main()
 {
@@ -272,10 +274,10 @@ int main()
     params.Bits = 32;
     params.AntiAlias = 4; // Anti-aliasing
     params.Stencilbuffer = false;
-    params.Vsync = false; // VSync para smoother rendering
+    params.Vsync = true; // VSync para smoother rendering
     params.EventReceiver = &receiver;
 
-   IrrlichtDevice *device = createDeviceEx(params);
+    IrrlichtDevice *device = createDeviceEx(params);
     if (!device)
     {
         std::cerr << "Failed to create device\n";
@@ -293,12 +295,12 @@ int main()
         return 2;
     }
 
-    std::cout << "GPU Programming Services available!\n";
+  
 
     CShaderCallBack *shaderCallback = new CShaderCallBack();
 
     // Criar material com shaders customizadas
-  s32  shaderMaterial = gpu->addHighLevelShaderMaterial(
+    s32 shaderMaterial = gpu->addHighLevelShaderMaterial(
         VertexShader, "main", video::EVST_VS_4_0,   // Vertex shader
         FragmentShader, "main", video::EPST_PS_4_0, // Fragment shader
         shaderCallback,                             // Callback
@@ -314,7 +316,19 @@ int main()
         return 3;
     }
 
+    CShaderLinesCallBack * shadeLinesCallback = new CShaderLinesCallBack();
+    s32 shaderLinesMaterial = gpu->addHighLevelShaderMaterial(
+        VertexShaderLines, "main", video::EVST_VS_4_0,   // Vertex shader
+        FragmentShaderLines, "main", video::EPST_PS_4_0, // Fragment shader
+        shadeLinesCallback,                             // Callback
+        video::EMT_SOLID, 0                         // Base material
+    );
+    shadeLinesCallback->drop();
+
+
+
     std::cout << "Shader material created successfully! Type: " << shaderMaterial << std::endl;
+    std::cout << "Shader lines material created successfully! Type: " << shaderLinesMaterial << std::endl;
 
     // Verificar se temos geometry creator
     if (!smgr->getGeometryCreator())
@@ -324,26 +338,24 @@ int main()
         return 2;
     }
 
-
-    
     ICameraSceneNode *camera = smgr->addCameraSceneNode(nullptr, core::vector3df(0, 5, -15), core::vector3df(0, 0, 0));
-    
+   //  camera->addComponent<FpsComponent>();
+    camera->addComponent<FreeCameraComponent>();
 
-    auto* cube = smgr->addCube(2.0f, nullptr, 20, core::vector3df(0,0,0), core::vector3df(0,0,0), core::vector3df(1.0f,1.0f,1.0f));
-    if(cube)
+    auto *cube = smgr->addCube(2.0f, nullptr, 20, core::vector3df(0, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
+    if (cube)
     {
         cube->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
+        cube->getComponent<scene::MeshComponent>()->setColor(255,0,0);
+
     }
 
-    auto *sphere = smgr->addSphere(1.5f, 16, nullptr, -1, core::vector3df(5,0,0), core::vector3df(0,0,0), core::vector3df(1.0f,1.0f,1.0f));
-    if(sphere)
+    auto *sphere = smgr->addSphere(1.5f, 16, cube, -1, core::vector3df(5, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
+    if (sphere)
     {
         sphere->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
+        sphere->getComponent<scene::MeshComponent>()->setColor(255,0,255);
     }
-
-
-        
-
 
     camera->setFOV(core::PI / 3.0f);
     camera->setAspectRatio((f32)params.WindowSize.Width / (f32)params.WindowSize.Height);
@@ -352,31 +364,15 @@ int main()
 
     u32 frames = 0;
     u32 lastFPS = 0;
+    f32 time=0;
 
-    f32 MaxVerticalAngle = 88.0f;
-    f32 MoveSpeed = 20.5f;
-    f32 RotateSpeed = 100.0f; 
-    f32 MouseYDirection = 1.0f;
     s32 LastAnimationTime = device->getTimer()->getRealTime();
-    core::position2d<f32> CursorPos;
-    bool firstUpdate = true;
-    bool firstInput = true;
-    bool NoVerticalMovement = false;
 
-    // Variáveis para armazenar rotação
-    f32 rotationX = 0.0f;
-    f32 rotationY = 0.0f;
-    core::position2d<f32> LastMousePos;
-    gui::ICursorControl *CursorControl = device->getCursorControl();
+    CLineBatchRenderer lineBatch(driver,80000);
+    lineBatch.setShader(shaderLinesMaterial);
 
-    // Configurações iniciais do cursor
-    CursorControl->setVisible(true); // Esconder cursor
-
-    CursorPos = CursorControl->getRelativePosition();
-
-    core::vector3df CameraPosition = core::vector3df(0, 1, -10);
-    bool FirstMouseInput = true;
-    f32 MouseSensitivity = 0.2f;
+    
+    u32 bounce=0;
 
     // Loop principal
     while (device->run() && !ABORT)
@@ -384,79 +380,48 @@ int main()
 
         f32 timeDiff = (f32)(device->getTimer()->getRealTime() - LastAnimationTime) / 1000.0f;
         LastAnimationTime = device->getTimer()->getRealTime();
-
-        // Update position
-        core::vector3df pos = camera->getPosition();
-
-        if (receiver.IsMouseDown(0)) // Botão esquerdo pressionado
-        {
-            core::position2d<f32> currentMousePos = receiver.GetCursorPos();
-
-            if (!FirstMouseInput)
-            {
-                // Calcular delta do movimento do mouse
-                f32 deltaX = currentMousePos.X - LastMousePos.X;
-                f32 deltaY = currentMousePos.Y - LastMousePos.Y;
-
-                // Atualizar rotação da câmera
-                CameraYaw += deltaX * MouseSensitivity;
-                CameraPitch += deltaY * MouseSensitivity;
-
-                // Limitar pitch vertical
-                if (CameraPitch > MaxVerticalAngle)
-                    CameraPitch = MaxVerticalAngle;
-                else if (CameraPitch < -MaxVerticalAngle)
-                    CameraPitch = -MaxVerticalAngle;
-
-                // Normalizar yaw (0-360)
-                if (CameraYaw >= 360.0f)
-                    CameraYaw -= 360.0f;
-                else if (CameraYaw < 0.0f)
-                    CameraYaw += 360.0f;
-            }
-
-            LastMousePos = currentMousePos;
-            FirstMouseInput = false;
-        }
-        else
-        {
-            FirstMouseInput = true;
-        }
-        core::vector3df moveVector(0, 0, 0);
-        core::vector3df forward = GetCameraDirection();
-        core::vector3df right = GetCameraRight();
-        forward.Y = 0;
-        forward.normalize();
-        right.normalize();
-
-        // WASD movement
-        if (receiver.IsKeyDown(irr::KEY_KEY_W))
-            moveVector += forward;
-        if (receiver.IsKeyDown(irr::KEY_KEY_S))
-            moveVector -= forward;
-        if (receiver.IsKeyDown(irr::KEY_KEY_A))
-            moveVector -= right;
-        if (receiver.IsKeyDown(irr::KEY_KEY_D))
-            moveVector += right;
-
-        if (moveVector.getLength() > 0)
-        {
-            moveVector.normalize();
-            CameraPosition += moveVector * MoveSpeed * timeDiff;
-        }
-
-        core::vector3df cameraTarget = CameraPosition + GetCameraDirection();
-
-        camera->setPosition(CameraPosition);
-        camera->setTarget(cameraTarget);
+        time+=timeDiff;
 
         driver->beginScene(true, true, video::SColor(255, 20, 20, 40));
 
+        smgr->update();
 
- 
         smgr->drawAll();
 
+        
+        TransformComponent* transform = cube->getComponent<TransformComponent>();
+        
+        
+        f32 angle = time * 8.0f* core::DEGTORAD;
+        transform->rotation.Y = (angle *25.0f) * core::RADTODEG;  
+        transform->rotation.Z = (-angle *25.0f) * core::RADTODEG;  
+ 
+        
+        transform->position.X = sin(angle)*5.5;
+        transform->position.Z = cos(angle)*5.5;
 
+
+
+        lineBatch.addGrid(vector3df(0,-1,0), 20.0f, 10, SColor(255,100,100,100));
+        lineBatch.addAxes(vector3df(0,0,0), 1.0f);
+
+        lineBatch.addWireBox(sphere->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
+        lineBatch.addWireBox(cube->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
+
+    
+        
+        lineBatch.addWireSphere(vector3df(0, 0, 0), 1.6f, 16, 8,SColor(255,255,255,0));
+ 
+
+        lineBatch.addCylinder(vector3df(2, 0, 0),1.0f,5,SColor(255,255,255,0),18);
+
+        lineBatch.addWireBox(camera->getViewFrustum()->getBoundingBox(), SColor(255, 255, 0, 128)); 
+   
+
+       
+
+
+        lineBatch.render();
 
         driver->endScene();
 
@@ -479,7 +444,7 @@ int main()
     }
 
     std::cout << "Shutting down...\n";
-    
+
     device->drop();
     return 0;
 }

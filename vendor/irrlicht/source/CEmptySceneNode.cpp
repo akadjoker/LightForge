@@ -10,6 +10,8 @@ namespace irr
 {
 namespace scene
 {
+ 
+	
 
 //! constructor
 CEmptySceneNode::CEmptySceneNode(ISceneNode* parent, ISceneManager* mgr, s32 id)

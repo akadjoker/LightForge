@@ -63,8 +63,7 @@ namespace video
 		//! queries the features of the driver, returns true if feature is available
 		virtual bool queryFeature(E_VIDEO_DRIVER_FEATURE feature) const _IRR_OVERRIDE_;
 
-		//! Get attributes of the actual video driver
-		virtual const io::IAttributes& getDriverAttributes() const _IRR_OVERRIDE_;
+ 
 
 		//! sets transformation
 		virtual void setTransform(E_TRANSFORMATION_STATE state, const core::matrix4& mat) _IRR_OVERRIDE_;
@@ -521,12 +520,7 @@ namespace video
 		//! Sets the name of a material renderer.
 		virtual void setMaterialRendererName(s32 idx, const char* name) _IRR_OVERRIDE_;
 
-		//! Creates material attributes list from a material, usable for serialization and more.
-		virtual io::IAttributes* createAttributesFromMaterial(const video::SMaterial& material,
-			io::SAttributeReadWriteOptions* options=0) _IRR_OVERRIDE_;
-
-		//! Fills an SMaterial structure from attributes.
-		virtual void fillMaterialStructureFromAttributes(video::SMaterial& outMaterial, io::IAttributes* attributes) _IRR_OVERRIDE_;
+		 
 
 		//! looks if the image is already loaded
 		virtual video::ITexture* findTexture(const io::path& filename) _IRR_OVERRIDE_;
@@ -769,8 +763,7 @@ namespace video
 		f32 FogDensity;
 		SColor FogColor;
 		SExposedVideoData ExposedData;
-
-		io::IAttributes* DriverAttributes;
+ 
 
 		E_FOG_TYPE FogType;
 		bool PixelFog;

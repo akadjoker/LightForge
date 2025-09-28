@@ -5,9 +5,10 @@
 #ifndef __I_SCENE_NODE_H_INCLUDED__
 #define __I_SCENE_NODE_H_INCLUDED__
 #include <typeinfo>
-#include "IAttributeExchangingObject.h"
+
 #include "ESceneNodeTypes.h"
 #include "ECullingTypes.h"
+#include "IEventReceiver.h"
 #include "EDebugSceneTypes.h"
 #include "ITriangleSelector.h"
 #include "SMaterial.h"
@@ -32,10 +33,18 @@ namespace irr
 
 		class IComponent
 		{
+
+		protected:
+			friend class ISceneNode;
+			ISceneNode *owner = nullptr;
+
 		public:
 			virtual ~IComponent() = default;
-			virtual void OnAnimate(u32 deltaTime) {}
+			virtual void OnAnimate(f32 deltaTime) {}
 			virtual void Render() {}
+			virtual void OnReady() {}
+			virtual void OnDestroy() {}
+			virtual bool OnEvent(const SEvent &event) { return false; };
 		};
 
 		// Transform Component
@@ -46,19 +55,11 @@ namespace irr
 			core::vector3df rotation{0, 0, 0};
 			core::vector3df scale{1, 1, 1};
 
-			core::matrix4 getWorldMatrix() const
-			{
-				core::matrix4 worldMatrix;
-				worldMatrix.setTranslation(position);
+			virtual bool OnEvent(const SEvent &event) override { return false; };
 
-				core::matrix4 rotMatrix;
-				rotMatrix.setRotationDegrees(rotation);
-
-				core::matrix4 scaleMatrix;
-				scaleMatrix.setScale(scale);
-
-				return worldMatrix * rotMatrix * scaleMatrix;
-			}
+			core::matrix4 getLocalMatrix() const;
+	 		core::matrix4 getWorldMatrix() const;
+	 
 		};
 
 		class MeshComponent : public IComponent
@@ -66,8 +67,8 @@ namespace irr
 			scene::IMesh *mesh = nullptr;
 			s32 shaderMaterial = -1;
 			friend class ISceneNode;
-		public:
 
+		public:
 			MeshComponent(scene::IMesh *m)
 				: mesh(m)
 			{
@@ -75,10 +76,14 @@ namespace irr
 					mesh->grab();
 			}
 
+			void OnReady() override;
+
 			void setShaderMaterial(s32 materialType)
 			{
 				shaderMaterial = materialType;
 			}
+
+			void setColor(u8 r, u8 g, u8 b,u8 a=255);
 
 			s32 getShaderMaterial() const { return shaderMaterial; }
 
@@ -90,7 +95,7 @@ namespace irr
 		};
 
 		//! Scene node interface.
-		class ISceneNode : virtual public io::IAttributeExchangingObject
+		class ISceneNode : public virtual IReferenceCounted
 		{
 		public:
 			//! Constructor
@@ -110,6 +115,7 @@ namespace irr
 			//! OnAnimate() is called just before rendering the whole scene.
 			virtual void OnAnimate(f32 deltaTime);
 
+			virtual bool OnEvent(const SEvent &event);
 			//! Renders the node.
 			virtual void render();
 
@@ -121,7 +127,7 @@ namespace irr
 			virtual void setName(const core::stringc &name);
 
 			//! Get the axis aligned, not transformed bounding box of this node.
-			const core::aabbox3d<f32> &getBoundingBox() const ;
+			const core::aabbox3d<f32> &getBoundingBox() const;
 
 			//! Get the axis aligned, transformed and animated absolute bounding box.
 			const core::aabbox3d<f32> getTransformedBoundingBox() const;
@@ -222,12 +228,6 @@ namespace irr
 			//! Returns type of the scene node
 			virtual ESCENE_NODE_TYPE getType() const;
 
-			//! Writes attributes of the scene node.
-			virtual void serializeAttributes(io::IAttributes *out, io::SAttributeReadWriteOptions *options = 0) const;
-
-			//! Reads attributes of the scene node.
-			virtual void deserializeAttributes(io::IAttributes *in, io::SAttributeReadWriteOptions *options = 0);
-
 			//! Creates a clone of this scene node and its children.
 			virtual ISceneNode *clone(ISceneNode *newParent = 0, ISceneManager *newManager = 0);
 
@@ -238,13 +238,20 @@ namespace irr
 			T *addComponent(Args &&...args)
 			{
 				T *component = new T(std::forward<Args>(args)...);
+				component->owner = this;
+				component->OnReady();
 				const char *typeName = typeid(T).name();
 				auto *node = components.find(typeName);
 				if (node)
 				{
 					IComponent *old = node->getValue();
 					if (old && old != component)
+					{
+						old->OnDestroy();
+						old->owner = nullptr;
 						delete old;
+					}
+
 					node->setValue(component);
 				}
 				else
@@ -258,15 +265,15 @@ namespace irr
 			template <typename T>
 			bool containsComponent() const
 			{
-				 irr::core::stringc type = typeid(T).name();
+				irr::core::stringc type = typeid(T).name();
 				auto *node = components.find(type);
 				return node != nullptr;
 			}
 
 			template <typename T>
-			T *getComponent() const 
+			T *getComponent() const
 			{
-				 irr::core::stringc type = typeid(T).name();
+				irr::core::stringc type = typeid(T).name();
 
 				auto *node = components.find(type);
 				if (node)
@@ -280,7 +287,7 @@ namespace irr
 			void cloneMembers(ISceneNode *toCopyFrom, ISceneManager *newManager);
 
 			void setSceneManager(ISceneManager *newManager);
-    		irr::core::aabbox3d<irr::f32> Box;
+			irr::core::aabbox3d<irr::f32> Box;
 			core::map<core::stringc, IComponent *> components;
 			core::stringc Name;
 			core::matrix4 AbsoluteTransformation;
@@ -298,7 +305,8 @@ namespace irr
 			bool IsVisible;
 			bool IsStaticObject;
 			bool IsDebugObject;
-			
+
+			friend class MeshComponent;
 		};
 
 	} // end namespace scene

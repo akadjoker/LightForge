@@ -75,19 +75,11 @@ namespace irr
 			dev = new CIrrDeviceWin32(params);
 #endif
 
-#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-		if (params.DeviceType == EIDT_OSX || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceOSX(params);
-#endif
+
 
 #ifdef _IRR_COMPILE_WITH_X11_DEVICE_
 		if (params.DeviceType == EIDT_LINUX || (!dev && params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceLinux(params);
-#endif
-
-#ifdef _IRR_COMPILE_WITH_PHONE_DEVICE_
-		if (params.DeviceType == EIDT_PHONE || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDevicePhone(params);
 #endif
 
 #ifdef _IRR_COMPILE_WITH_CONSOLE_DEVICE_

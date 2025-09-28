@@ -33,6 +33,10 @@ enum E_VERTEX_TYPE
 	EVT_SKIN_TANGENTS,	
 	EVT_2TCOORDS_TANGENTS,
 	EVT_SKIN_2TCOORDS_TANGENTS,
+
+	EVT_LINES,
+	EVT_SPRITES,
+
 	//! Null
 	EVT_UNKNOWN
 };
@@ -47,6 +51,8 @@ const char* const sBuiltInVertexTypeNames[] =
 	"skintangents",	
 	"2tcoordstangents",
 	"skin2tcoordtangents",
+	"lines",
+	"sprites",
 	0
 };
 
@@ -419,6 +425,64 @@ struct S3DVertexSkin2TCoordsTangents : public S3DVertex2TCoordsTangents
 	E_VERTEX_TYPE getType() const
 	{
 		return EVT_SKIN_2TCOORDS_TANGENTS;
+	}
+};
+
+
+
+//! standard vertex used by the Irrlicht engine.
+struct S3DLinesVertex
+{
+	//! default constructor
+	S3DLinesVertex() {}
+
+	//! constructor
+	S3DLinesVertex(f32 x, f32 y, f32 z,  SColor c )
+		: Pos(x,y,z),   Color(c)  {}
+
+	//! constructor
+	S3DLinesVertex(const core::vector3df& pos,  
+		SColor color )
+		: Pos(pos),  Color(color)  {}
+
+	//! Position
+	core::vector3df Pos;
+
+	 
+	//! Color
+	SColor Color;
+
+	 
+
+	bool operator==(const S3DLinesVertex& other) const
+	{
+		return ((Pos == other.Pos) &&  
+			(Color == other.Color) );
+	}
+
+	bool operator!=(const S3DLinesVertex& other) const
+	{
+		return ((Pos != other.Pos) || 
+			(Color != other.Color) );
+	}
+
+	bool operator<(const S3DLinesVertex& other) const
+	{
+		return ((Pos < other.Pos) ||
+				((Pos == other.Pos)  ) ||
+				((Pos == other.Pos)  ) && (Color < other.Color)) ||
+				((Pos == other.Pos)  ) && (Color == other.Color) ;
+	}
+
+	E_VERTEX_TYPE getType() const
+	{
+		return EVT_LINES;
+	}
+
+	S3DLinesVertex getInterpolated(const S3DLinesVertex& other, f32 d)
+	{
+		d = core::clamp(d, 0.0f, 1.0f);
+		return S3DLinesVertex(Pos.getInterpolated(other.Pos, d),Color.getInterpolated(other.Color, d) );
 	}
 };
 

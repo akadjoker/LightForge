@@ -120,12 +120,16 @@ namespace irr
 		}
 		else
 		{
-			os::Printer::log("SDL initialized", ELL_INFORMATION);
+			//os::Printer::log("SDL initialized", ELL_INFORMATION);
 		}
 
 		core::stringc sdlversion = "SDL 2";
 		Operator = new COSOperator(sdlversion);
-		os::Printer::log(sdlversion.c_str(), ELL_INFORMATION);
+	//	os::Printer::log(sdlversion.c_str(), ELL_INFORMATION);
+
+		os::Printer::log("=================================", ELL_INFORMATION);
+		os::Printer::log("       LightForge Engine 0.1     ", ELL_INFORMATION);
+		os::Printer::log( "=================================", ELL_INFORMATION);
 
 		// create keymap
 		createKeyMap();
@@ -228,7 +232,7 @@ namespace irr
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		}
 
-		int flags = SDL_WINDOW_OPENGL;
+		int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
 		ScreenWindow = SDL_CreateWindow("Untitled", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Width, Height, flags);
 
@@ -1027,10 +1031,13 @@ namespace irr
 		Cursor[gui::ECI_HAND] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 		Cursor[gui::ECI_HELP] = Cursor[gui::ECI_NORMAL];
 		Cursor[gui::ECI_UP] = Cursor[gui::ECI_NORMAL];
+
+		os::Printer::log("Create Cursor",ELOG_LEVEL::ELL_INFORMATION);
 	}
 
 	CIrrDeviceSDL2::CCursorControl::~CCursorControl()
 	{
+		os::Printer::log("Destroy Cursor",ELOG_LEVEL::ELL_INFORMATION);
 		for (int i = 0; i < gui::ECI_COUNT; i++)
 		{
 			SDL_FreeCursor(Cursor[i]);

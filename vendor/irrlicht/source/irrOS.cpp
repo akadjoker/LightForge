@@ -361,6 +361,11 @@ namespace os
 		u32 currentTime = getTime();
 		f32 deltaTime = (currentTime - lastTime) / 1000.0f; // convert ms to seconds
 		lastTime = currentTime;
+
+			
+
+
+
 		return deltaTime;
     }
 

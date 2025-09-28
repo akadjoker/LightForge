@@ -52,9 +52,7 @@
 
 #include "fast_atof.h"
 #include "heapsort.h"
-
-#include "IAttributeExchangingObject.h"
-#include "IAttributes.h"
+ 
 #include "ICameraSceneNode.h"
 #include "ICursorControl.h"
 
@@ -98,7 +96,7 @@
 #include "ISceneManager.h"
 #include "ISceneNode.h"
  
- 
+ #include "ILinesBatch.h"
  
 
 #include "IShaderConstantSetCallBack.h"
@@ -126,7 +124,7 @@
 #include "rect.h"
 #include "S3DVertex.h"
 
-#include "SceneParameters.h"
+ 
 #include "SColor.h"
 #include "SExposedVideoData.h"
 #include "SIrrCreationParameters.h"

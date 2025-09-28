@@ -451,7 +451,7 @@ namespace video
 		ShaderLanguageVersion (int) Version of the high level shader language. Should be Major*100+Minor.
 		AntiAlias (int) Number of Samples the driver uses for each pixel. 0 and 1 means anti aliasing is off, typical values are 2,4,8,16,32
 		*/
-		virtual const io::IAttributes& getDriverAttributes() const=0;
+ 
 
 		//! Check if the driver was recently reset.
 		/** For d3d devices you will need to recreate the RTTs if the
@@ -1181,27 +1181,7 @@ namespace video
 		\param name: New name of the material renderer. */
 		virtual void setMaterialRendererName(s32 idx, const c8* name) =0;
 
-		//! Creates material attributes list from a material
-		/** This method is useful for serialization and more.
-		Please note that the video driver will use the material
-		renderer names from getMaterialRendererName() to write out the
-		material type name, so they should be set before.
-		\param material The material to serialize.
-		\param options Additional options which might influence the
-		serialization.
-		\return The io::IAttributes container holding the material
-		properties. */
-		virtual io::IAttributes* createAttributesFromMaterial(const video::SMaterial& material,
-			io::SAttributeReadWriteOptions* options=0) =0;
-
-		//! Fills an SMaterial structure from attributes.
-		/** Please note that for setting material types of the
-		material, the video driver will need to query the material
-		renderers for their names, so all non built-in materials must
-		have been created before calling this method.
-		\param outMaterial The material to set the properties for.
-		\param attributes The attributes to read from. */
-		virtual void fillMaterialStructureFromAttributes(video::SMaterial& outMaterial, io::IAttributes* attributes) =0;
+		 
 
 		//! Returns driver and operating system specific data about the IVideoDriver.
 		/** This method should only be used if the engine should be

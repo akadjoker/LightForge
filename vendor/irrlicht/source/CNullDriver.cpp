@@ -13,7 +13,7 @@
 #include "IImageWriter.h"
 #include "IMaterialRenderer.h"
 #include "CColorConverter.h"
-#include "IAttributeExchangingObject.h"
+ 
 #include "CVertexDescriptor.h"
 #include "CMeshBuffer.h"
 
@@ -92,23 +92,7 @@ CNullDriver::CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& scre
 	#ifdef _DEBUG
 	setDebugName("CNullDriver");
 	#endif
-
-	DriverAttributes = new io::CAttributes();
-	DriverAttributes->addInt("MaxTextures", _IRR_MATERIAL_MAX_TEXTURES_);
-	DriverAttributes->addInt("MaxSupportedTextures", _IRR_MATERIAL_MAX_TEXTURES_);
-	DriverAttributes->addInt("MaxLights", getMaximalDynamicLightAmount());
-	DriverAttributes->addInt("MaxAnisotropy", 1);
-//	DriverAttributes->addInt("MaxUserClipPlanes", 0);
-//	DriverAttributes->addInt("MaxAuxBuffers", 0);
-	DriverAttributes->addInt("MaxMultipleRenderTargets", 1);
-	DriverAttributes->addInt("MaxIndices", -1);
-	DriverAttributes->addInt("MaxTextureSize", -1);
-//	DriverAttributes->addInt("MaxGeometryVerticesOut", 0);
-//	DriverAttributes->addFloat("MaxTextureLODBias", 0.f);
-	DriverAttributes->addInt("Version", 1);
-//	DriverAttributes->addInt("ShaderLanguageVersion", 0);
-//	DriverAttributes->addInt("AntiAlias", 0);
-
+ 
 	setFog();
 
 	setTextureCreationFlag(ETCF_ALWAYS_32_BIT, true);
@@ -198,8 +182,7 @@ CNullDriver::CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& scre
 //! destructor
 CNullDriver::~CNullDriver()
 {
-	if (DriverAttributes)
-		DriverAttributes->drop();
+ 
 
 	if (FileSystem)
 		FileSystem->drop();
@@ -300,6 +283,19 @@ bool CNullDriver::createVertexDescriptors()
 	VertexDescriptor[6]->addAttribute("inData", 2, EVAS_VERTEXDATA, EVAT_FLOAT, 0);
 	VertexDescriptor[6]->addAttribute("inBlendIndex", 4, EVAS_BLEND_INDICES, EVAT_FLOAT, 0);
 	VertexDescriptor[6]->addAttribute("inBlendWeight", 4, EVAS_BLEND_WEIGHTS, EVAT_FLOAT, 0);
+
+
+	addVertexDescriptor("lines");
+	VertexDescriptor[7]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
+	VertexDescriptor[7]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
+
+	addVertexDescriptor("sprite");
+	VertexDescriptor[8]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
+	VertexDescriptor[8]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
+	VertexDescriptor[8]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
+	
+
+
 	return true;
 }
 
@@ -407,11 +403,7 @@ bool CNullDriver::queryFeature(E_VIDEO_DRIVER_FEATURE feature) const
 }
 
 
-//! Get attributes of the actual video driver
-const io::IAttributes& CNullDriver::getDriverAttributes() const
-{
-	return *DriverAttributes;
-}
+ 
 
 //! sets a material
 void CNullDriver::setMaterial(const SMaterial& material)
@@ -2079,173 +2071,6 @@ void CNullDriver::setMaterialRendererName(s32 idx, const char* name)
 }
 
 
-//! Creates material attributes list from a material, usable for serialization and more.
-io::IAttributes* CNullDriver::createAttributesFromMaterial(const video::SMaterial& material,
-	io::SAttributeReadWriteOptions* options)
-{
-	io::CAttributes* attr = new io::CAttributes(this);
-
-	attr->addEnum("Type", material.MaterialType, sBuiltInMaterialTypeNames);
-
-	attr->addColor("Ambient", material.AmbientColor);
-	attr->addColor("Diffuse", material.DiffuseColor);
-	attr->addColor("Emissive", material.EmissiveColor);
-	attr->addColor("Specular", material.SpecularColor);
-
-	attr->addFloat("Shininess", material.Shininess);
-	attr->addFloat("Param1", material.MaterialTypeParam);
-	attr->addFloat("Param2", material.MaterialTypeParam2);
-
-	core::stringc prefix="Texture";
-	u32 i;
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-	{
-		if (options && (options->Flags&io::EARWF_USE_RELATIVE_PATHS) && options->Filename && material.getTexture(i))
-		{
-			io::path path = FileSystem->getRelativeFilename(
-				FileSystem->getAbsolutePath(material.getTexture(i)->getName()), options->Filename);
-			attr->addTexture((prefix+core::stringc(i+1)).c_str(), material.getTexture(i), path);
-		}
-		else
-			attr->addTexture((prefix+core::stringc(i+1)).c_str(), material.getTexture(i));
-	}
-
-	attr->addBool("Wireframe", material.Wireframe);
-	attr->addBool("GouraudShading", material.GouraudShading);
-	attr->addBool("Lighting", material.Lighting);
-	attr->addBool("ZWriteEnable", material.ZWriteEnable);
-	attr->addInt("ZBuffer", material.ZBuffer);
-	attr->addBool("BackfaceCulling", material.BackfaceCulling);
-	attr->addBool("FrontfaceCulling", material.FrontfaceCulling);
-	attr->addBool("FogEnable", material.FogEnable);
-	attr->addBool("NormalizeNormals", material.NormalizeNormals);
-	attr->addBool("UseMipMaps", material.UseMipMaps);
-	attr->addInt("AntiAliasing", material.AntiAliasing);
-	attr->addInt("ColorMask", material.ColorMask);
-	attr->addInt("ColorMaterial", material.ColorMaterial);
-	attr->addInt("PolygonOffsetFactor", material.PolygonOffsetFactor);
-	attr->addEnum("PolygonOffsetDirection", material.PolygonOffsetDirection, video::PolygonOffsetDirectionNames);
-
-	prefix = "BilinearFilter";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addBool((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].BilinearFilter);
-	prefix = "TrilinearFilter";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addBool((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].TrilinearFilter);
-	prefix = "AnisotropicFilter";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addInt((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].AnisotropicFilter);
-	prefix="TextureWrapU";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addEnum((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].TextureWrapU, aTextureClampNames);
-	prefix="TextureWrapV";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addEnum((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].TextureWrapV, aTextureClampNames);
-	prefix="LODBias";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		attr->addInt((prefix+core::stringc(i+1)).c_str(), material.TextureLayer[i].LODBias);
-
-	return attr;
-}
-
-
-//! Fills an SMaterial structure from attributes.
-void CNullDriver::fillMaterialStructureFromAttributes(video::SMaterial& outMaterial, io::IAttributes* attr)
-{
-	outMaterial.MaterialType = video::EMT_SOLID;
-
-	core::stringc name = attr->getAttributeAsString("Type");
-
-	u32 i;
-
-	for ( i=0; i < MaterialRenderers.size(); ++i)
-		if ( name == MaterialRenderers[i].Name )
-		{
-			outMaterial.MaterialType = (video::E_MATERIAL_TYPE)i;
-			break;
-		}
-
-	outMaterial.AmbientColor = attr->getAttributeAsColor("Ambient");
-	outMaterial.DiffuseColor = attr->getAttributeAsColor("Diffuse");
-	outMaterial.EmissiveColor = attr->getAttributeAsColor("Emissive");
-	outMaterial.SpecularColor = attr->getAttributeAsColor("Specular");
-
-	outMaterial.Shininess = attr->getAttributeAsFloat("Shininess");
-	outMaterial.MaterialTypeParam = attr->getAttributeAsFloat("Param1");
-	outMaterial.MaterialTypeParam2 = attr->getAttributeAsFloat("Param2");
-
-	core::stringc prefix="Texture";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		outMaterial.setTexture(i, attr->getAttributeAsTexture((prefix+core::stringc(i+1)).c_str()));
-
-	outMaterial.Wireframe = attr->getAttributeAsBool("Wireframe");
-	outMaterial.GouraudShading = attr->getAttributeAsBool("GouraudShading");
-	outMaterial.Lighting = attr->getAttributeAsBool("Lighting");
-	outMaterial.ZWriteEnable = attr->getAttributeAsBool("ZWriteEnable");
-	outMaterial.ZBuffer = (u8)attr->getAttributeAsInt("ZBuffer");
-	outMaterial.BackfaceCulling = attr->getAttributeAsBool("BackfaceCulling");
-	outMaterial.FrontfaceCulling = attr->getAttributeAsBool("FrontfaceCulling");
-	outMaterial.FogEnable = attr->getAttributeAsBool("FogEnable");
-	outMaterial.NormalizeNormals = attr->getAttributeAsBool("NormalizeNormals");
-	if (attr->existsAttribute("UseMipMaps")) // legacy
-		outMaterial.UseMipMaps = attr->getAttributeAsBool("UseMipMaps");
-	else
-		outMaterial.UseMipMaps = true;
-
-	// default 0 is ok
-	outMaterial.AntiAliasing = attr->getAttributeAsInt("AntiAliasing");
-	if (attr->existsAttribute("ColorMask"))
-		outMaterial.ColorMask = attr->getAttributeAsInt("ColorMask");
-	if (attr->existsAttribute("ColorMaterial"))
-		outMaterial.ColorMaterial = attr->getAttributeAsInt("ColorMaterial");
-	if (attr->existsAttribute("PolygonOffsetFactor"))
-		outMaterial.PolygonOffsetFactor = attr->getAttributeAsInt("PolygonOffsetFactor");
-	if (attr->existsAttribute("PolygonOffsetDirection"))
-		outMaterial.PolygonOffsetDirection = (video::E_POLYGON_OFFSET)attr->getAttributeAsEnumeration("PolygonOffsetDirection", video::PolygonOffsetDirectionNames);
-	prefix = "BilinearFilter";
-	if (attr->existsAttribute(prefix.c_str())) // legacy
-		outMaterial.setFlag(EMF_BILINEAR_FILTER, attr->getAttributeAsBool(prefix.c_str()));
-	else
-		for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-			outMaterial.TextureLayer[i].BilinearFilter = attr->getAttributeAsBool((prefix+core::stringc(i+1)).c_str());
-
-	prefix = "TrilinearFilter";
-	if (attr->existsAttribute(prefix.c_str())) // legacy
-		outMaterial.setFlag(EMF_TRILINEAR_FILTER, attr->getAttributeAsBool(prefix.c_str()));
-	else
-		for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-			outMaterial.TextureLayer[i].TrilinearFilter = attr->getAttributeAsBool((prefix+core::stringc(i+1)).c_str());
-
-	prefix = "AnisotropicFilter";
-	if (attr->existsAttribute(prefix.c_str())) // legacy
-		outMaterial.setFlag(EMF_ANISOTROPIC_FILTER, attr->getAttributeAsBool(prefix.c_str()));
-	else
-		for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-			outMaterial.TextureLayer[i].AnisotropicFilter = attr->getAttributeAsInt((prefix+core::stringc(i+1)).c_str());
-
-	prefix = "TextureWrap";
-	if (attr->existsAttribute(prefix.c_str())) // legacy
-	{
-		for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		{
-			outMaterial.TextureLayer[i].TextureWrapU = (E_TEXTURE_CLAMP)attr->getAttributeAsEnumeration((prefix+core::stringc(i+1)).c_str(), aTextureClampNames);
-			outMaterial.TextureLayer[i].TextureWrapV = outMaterial.TextureLayer[i].TextureWrapU;
-		}
-	}
-	else
-	{
-		for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		{
-			outMaterial.TextureLayer[i].TextureWrapU = (E_TEXTURE_CLAMP)attr->getAttributeAsEnumeration((prefix+"U"+core::stringc(i+1)).c_str(), aTextureClampNames);
-			outMaterial.TextureLayer[i].TextureWrapV = (E_TEXTURE_CLAMP)attr->getAttributeAsEnumeration((prefix+"V"+core::stringc(i+1)).c_str(), aTextureClampNames);
-		}
-	}
-
-	// default 0 is ok
-	prefix="LODBias";
-	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
-		outMaterial.TextureLayer[i].LODBias = attr->getAttributeAsInt((prefix+core::stringc(i+1)).c_str());
-}
 
 
 //! Returns driver and operating system specific data about the IVideoDriver.

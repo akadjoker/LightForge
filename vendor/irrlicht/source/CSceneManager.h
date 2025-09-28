@@ -51,6 +51,8 @@ namespace irr
 			//! return the gui environment
 			virtual gui::IGUIEnvironment *getGUIEnvironment();
 
+			virtual gui::ICursorControl *getCursorControl();
+
 			//! return the filesystem
 			virtual io::IFileSystem *getFileSystem();
 
@@ -85,14 +87,14 @@ namespace irr
 			virtual ISceneNode *addEmptySceneNode(ISceneNode *parent, s32 id = -1);
 
 			virtual ISceneNode *addCube(f32 size = 10.0f, ISceneNode *parent = 0, s32 id = -1,
-										 const core::vector3df &position = core::vector3df(0, 0, 0),
-										 const core::vector3df &rotation = core::vector3df(0, 0, 0),
-										 const core::vector3df &scale = core::vector3df(1.0f, 1.0f, 1.0f));
+										const core::vector3df &position = core::vector3df(0, 0, 0),
+										const core::vector3df &rotation = core::vector3df(0, 0, 0),
+										const core::vector3df &scale = core::vector3df(1.0f, 1.0f, 1.0f));
 
 			virtual ISceneNode *addSphere(f32 radius = 5.0f, s32 polyCount = 16, ISceneNode *parent = 0, s32 id = -1,
-										   const core::vector3df &position = core::vector3df(0, 0, 0),
-										   const core::vector3df &rotation = core::vector3df(0, 0, 0),
-										   const core::vector3df &scale = core::vector3df(1.0f, 1.0f, 1.0f));
+										  const core::vector3df &position = core::vector3df(0, 0, 0),
+										  const core::vector3df &rotation = core::vector3df(0, 0, 0),
+										  const core::vector3df &scale = core::vector3df(1.0f, 1.0f, 1.0f));
 
 			//! Returns the root scene node. This is the scene node wich is parent
 			//! of all scene nodes. The root scene node is a special scene node which
@@ -161,9 +163,7 @@ namespace irr
 			//! Removes all children of this scene node
 			virtual void removeAll();
 
-			//! Returns interface to the parameters set in this scene.
-			virtual io::IAttributes *getParameters();
-
+	 
 			//! Returns current render pass.
 			virtual E_SCENE_NODE_RENDER_PASS getSceneNodeRenderPass() const;
 
@@ -173,12 +173,7 @@ namespace irr
 			//! Returns type of the scene node
 			virtual ESCENE_NODE_TYPE getType() const { return ESNT_SCENE_MANAGER; }
 
-			//! Writes attributes of the scene node.
-			virtual void serializeAttributes(io::IAttributes *out, io::SAttributeReadWriteOptions *options = 0) const;
-
-			//! Reads attributes of the scene node.
-			virtual void deserializeAttributes(io::IAttributes *in, io::SAttributeReadWriteOptions *options = 0);
-
+			 
 			//! Sets ambient color of the scene
 			virtual void setAmbientLight(const video::SColorf &ambientColor);
 
@@ -198,8 +193,21 @@ namespace irr
 			//! returns if node is culled
 			virtual bool isCulled(const ISceneNode *node) const;
 
-		protected:
-		private:
+			void setTargetFPS(f32 fps);
+			void setUseFixedTimeStep(bool useFixed) { UseFixedTimeStep = useFixed; }
+			void setDeltaLimits(f32 min, f32 max);
+			void setHistorySize(u32 size);
+			f32 getTargetFPS() const { return TargetFPS; }
+			f32 getCurrentFPS() const { return 1.0f / getAverageDeltaTime(); }
+			f32 getAverageDeltaTime() const;	
+
+			protected : private :
+
+			f32 calculateDeltaTime();
+			f32 getFixedDeltaTime(f32 rawDelta);
+			 f32 getSmoothedDeltaTime(f32 rawDelta);
+			 
+
 			//! clears the deletion list
 			void clearDeletionList();
 
@@ -299,7 +307,7 @@ namespace irr
 			core::array<TransparentNodeEntry> TransparentEffectNodeList;
 
 			core::array<ISceneNode *> DeletionList;
-			
+
 			//! current active camera
 			ICameraSceneNode *ActiveCamera;
 			core::vector3df camWorldPos; // Position of camera for transparent nodes.
@@ -307,8 +315,7 @@ namespace irr
 			video::SColor ShadowColor;
 			video::SColorf AmbientLight;
 
-			//! String parameters
-			io::CAttributes *Parameters;
+	 
 
 			//! Mesh cache
 			IMeshCache *MeshCache;
@@ -323,6 +330,23 @@ namespace irr
 
 			IGeometryCreator *GeometryCreator;
 			video::IShaderManager *ShaderManager;
+
+			//
+			u32 LastTime;
+			f32 AccumulatedTime;
+			f32 TargetDeltaTime;
+			f32 MaxDeltaTime;
+			f32 MinDeltaTime;
+
+			// Para smoothing
+			core::array<f32> DeltaHistory;
+			u32 HistorySize;
+			u32 CurrentHistoryIndex;
+			bool HistoryFull;
+
+			// Para frame rate targeting
+			f32 TargetFPS;
+			bool UseFixedTimeStep;
 		};
 
 	} // end namespace video
