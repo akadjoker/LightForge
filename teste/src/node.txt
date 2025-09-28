@@ -1,0 +1,258 @@
+// Adicionar estas variáveis na seção protected do ISceneNode:
+
+protected:
+    //! Orientação em quaternion
+    core::quaternion RelativeOrientationQuaternion;
+    
+    //! Flag para usar quaternion ao invés de euler angles  
+    bool UseQuaternionRotation;
+
+// Adicionar no construtor (após as inicializações existentes):
+
+ISceneNode(ISceneNode* parent, ISceneManager* mgr, s32 id=-1,
+        const core::vector3df& position = core::vector3df(0,0,0),
+        const core::vector3df& rotation = core::vector3df(0,0,0),
+        const core::vector3df& scale = core::vector3df(1.0f, 1.0f, 1.0f))
+    : RelativeTranslation(position), RelativeRotation(rotation), RelativeScale(scale),
+        Parent(0), SceneManager(mgr), TriangleSelector(0), ID(id),
+        AutomaticCullingState(EAC_BOX), DebugDataVisible(EDS_OFF),
+        IsVisible(true), IsDebugObject(false), IsStaticObject(false),
+        UseQuaternionRotation(false)  // <- ADICIONAR ESTA LINHA
+{
+    // Inicializar quaternion com rotação euler
+    RelativeOrientationQuaternion.set(RelativeRotation * core::DEGTORAD);
+    
+    if (parent)
+        parent->addChild(this);
+
+    updateAbsolutePosition();
+}
+
+// Adicionar estes métodos públicos na classe ISceneNode:
+
+public:
+    // ===== QUATERNION METHODS =====
+    
+    //! Define se deve usar quaternions para rotação
+    virtual void setUseQuaternionRotation(bool use)
+    {
+        UseQuaternionRotation = use;
+        if (use)
+        {
+            // Converter rotação atual para quaternion
+            RelativeOrientationQuaternion.set(RelativeRotation * core::DEGTORAD);
+        }
+    }
+    
+    //! Retorna se está usando quaternions
+    virtual bool isUsingQuaternionRotation() const
+    {
+        return UseQuaternionRotation;
+    }
+    
+    //! Define orientação usando quaternion
+    virtual void setOrientation(const core::quaternion& quat)
+    {
+        RelativeOrientationQuaternion = quat;
+        UseQuaternionRotation = true;
+        
+        // Converter para euler para compatibilidade
+        core::vector3df euler;
+        quat.toEuler(euler);
+        RelativeRotation = euler * core::RADTODEG;
+    }
+    
+    //! Obtém orientação como quaternion
+    virtual core::quaternion getOrientation() const
+    {
+        return RelativeOrientationQuaternion;
+    }
+    
+    //! Rota usando quaternion (adiciona rotação à atual)
+    virtual void rotateByQuaternion(const core::quaternion& quat)
+    {
+        if (UseQuaternionRotation)
+        {
+            RelativeOrientationQuaternion = RelativeOrientationQuaternion * quat;
+            
+            // Sincronizar com euler
+            core::vector3df euler;
+            RelativeOrientationQuaternion.toEuler(euler);
+            RelativeRotation = euler * core::RADTODEG;
+        }
+        else
+        {
+            // Converter para quaternion, aplicar rotação e voltar
+            core::quaternion current;
+            current.set(RelativeRotation * core::DEGTORAD);
+            current = current * quat;
+            current.toEuler(RelativeRotation);
+            RelativeRotation *= core::RADTODEG;
+        }
+    }
+    
+    // ===== DIREÇÃO METHODS =====
+    
+    //! Obtém vetor forward (direção para frente)
+    virtual core::vector3df getForwardVector() const
+    {
+        if (UseQuaternionRotation)
+        {
+            return core::vector3df(0, 0, 1).rotateBy(RelativeOrientationQuaternion);
+        }
+        else
+        {
+            core::matrix4 mat;
+            mat.setRotationDegrees(RelativeRotation);
+            core::vector3df forward(0, 0, 1);
+            mat.transformVect(forward);
+            return forward;
+        }
+    }
+    
+    //! Obtém vetor right (direção para direita)
+    virtual core::vector3df getRightVector() const
+    {
+        if (UseQuaternionRotation)
+        {
+            return core::vector3df(1, 0, 0).rotateBy(RelativeOrientationQuaternion);
+        }
+        else
+        {
+            core::matrix4 mat;
+            mat.setRotationDegrees(RelativeRotation);
+            core::vector3df right(1, 0, 0);
+            mat.transformVect(right);
+            return right;
+        }
+    }
+    
+    //! Obtém vetor up (direção para cima)
+    virtual core::vector3df getUpVector() const
+    {
+        if (UseQuaternionRotation)
+        {
+            return core::vector3df(0, 1, 0).rotateBy(RelativeOrientationQuaternion);
+        }
+        else
+        {
+            core::matrix4 mat;
+            mat.setRotationDegrees(RelativeRotation);
+            core::vector3df up(0, 1, 0);
+            mat.transformVect(up);
+            return up;
+        }
+    }
+    
+    // ===== LOOK AT METHODS =====
+    
+    //! Faz o nó olhar para um ponto específico
+    virtual void lookAt(const core::vector3df& target, const core::vector3df& up = core::vector3df(0, 1, 0))
+    {
+        core::vector3df forward = (target - RelativeTranslation);
+        forward.normalize();
+        
+        core::vector3df right = up.crossProduct(forward);
+        right.normalize();
+        
+        core::vector3df realUp = forward.crossProduct(right);
+        
+        // Criar matriz de orientação
+        core::matrix4 lookMatrix;
+        lookMatrix[0] = right.X;    lookMatrix[1] = realUp.X;   lookMatrix[2] = forward.X;   lookMatrix[3] = 0;
+        lookMatrix[4] = right.Y;    lookMatrix[5] = realUp.Y;   lookMatrix[6] = forward.Y;   lookMatrix[7] = 0;
+        lookMatrix[8] = right.Z;    lookMatrix[9] = realUp.Z;   lookMatrix[10] = forward.Z;  lookMatrix[11] = 0;
+        lookMatrix[12] = 0;         lookMatrix[13] = 0;         lookMatrix[14] = 0;          lookMatrix[15] = 1;
+        
+        // Converter para quaternion
+        RelativeOrientationQuaternion.set(lookMatrix);
+        UseQuaternionRotation = true;
+        
+        // Sincronizar com euler
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        RelativeRotation = euler * core::RADTODEG;
+    }
+    
+    //! Faz o nó olhar para outro nó
+    virtual void lookAt(ISceneNode* target, const core::vector3df& up = core::vector3df(0, 1, 0))
+    {
+        if (target)
+            lookAt(target->getAbsolutePosition(), up);
+    }
+    
+    // ===== MOVEMENT BY ANGLES =====
+    
+    //! Move baseado nos ângulos atuais (forward/backward)
+    virtual void moveForward(f32 distance)
+    {
+        core::vector3df forward = getForwardVector();
+        RelativeTranslation += forward * distance;
+    }
+    
+    //! Move para os lados baseado nos ângulos atuais (strafe)
+    virtual void moveRight(f32 distance)
+    {
+        core::vector3df right = getRightVector();
+        RelativeTranslation += right * distance;
+    }
+    
+    //! Move para cima baseado nos ângulos atuais
+    virtual void moveUp(f32 distance)
+    {
+        core::vector3df up = getUpVector();
+        RelativeTranslation += up * distance;
+    }
+    
+    //! Rota em torno do eixo Y (yaw)
+    virtual void rotateYaw(f32 degrees)
+    {
+        core::quaternion yawQuat;
+        yawQuat.fromAngleAxis(degrees * core::DEGTORAD, core::vector3df(0, 1, 0));
+        rotateByQuaternion(yawQuat);
+    }
+    
+    //! Rota em torno do eixo X (pitch)
+    virtual void rotatePitch(f32 degrees)
+    {
+        core::quaternion pitchQuat;
+        pitchQuat.fromAngleAxis(degrees * core::DEGTORAD, core::vector3df(1, 0, 0));
+        rotateByQuaternion(pitchQuat);
+    }
+    
+    //! Rota em torno do eixo Z (roll)
+    virtual void rotateRoll(f32 degrees)
+    {
+        core::quaternion rollQuat;
+        rollQuat.fromAngleAxis(degrees * core::DEGTORAD, core::vector3df(0, 0, 1));
+        rotateByQuaternion(rollQuat);
+    }
+
+// Modificar o método getRelativeTransformation para suportar quaternions:
+
+virtual core::matrix4 getRelativeTransformation() const
+{
+    core::matrix4 mat;
+    
+    if (UseQuaternionRotation)
+    {
+        // Usar quaternion
+        RelativeOrientationQuaternion.getMatrix(mat);
+        mat.setTranslation(RelativeTranslation);
+    }
+    else
+    {
+        // Usar euler (código original)
+        mat.setRotationDegrees(RelativeRotation);
+        mat.setTranslation(RelativeTranslation);
+    }
+
+    if (RelativeScale != core::vector3df(1.f,1.f,1.f))
+    {
+        core::matrix4 smat;
+        smat.setScale(RelativeScale);
+        mat *= smat;
+    }
+
+    return mat;
+}
