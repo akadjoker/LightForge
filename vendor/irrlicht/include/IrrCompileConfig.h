@@ -120,6 +120,15 @@
 #endif
 
 
+#ifndef IRR_UNUSED
+# if defined(_MSC_VER)
+#   define IRR_UNUSED(x) (void)(x)
+# else
+#   define IRR_UNUSED(x) (void)sizeof(x)
+# endif
+#endif
+
+
 //! Define _IRR_COMPILE_WITH_JOYSTICK_SUPPORT_ if you want joystick events.
 #define _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
 #ifdef NO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_

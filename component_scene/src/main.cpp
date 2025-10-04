@@ -368,11 +368,22 @@ int main()
 
     s32 LastAnimationTime = device->getTimer()->getRealTime();
 
-    CLineBatchRenderer lineBatch(driver,80000);
+    CLineBatchRenderer lineBatch(driver,1000);
     lineBatch.setShader(shaderLinesMaterial);
 
     
     u32 bounce=0;
+
+    MeshComponent *cMesh =    cube->getComponent<MeshComponent>();
+    scene::IMesh* mesh = cMesh->getMesh();
+    scene::IMeshBuffer* mb = mesh->getMeshBuffer(0);
+    auto* desc = mb->getVertexDescriptor();
+    auto* vb   = mb->getVertexBuffer(0);
+    auto* ib   = mb->getIndexBuffer();
+
+    
+
+
 
     // Loop principal
     while (device->run() && !ABORT)
@@ -388,17 +399,30 @@ int main()
 
         smgr->drawAll();
 
+
+        driver->setRenderStates3DMode();  
+        //driver->drawElements(desc, vb, ib, scene::EPT_TRIANGLES, ib->getIndexCount());
+        driver->drawArrays(desc, vb, scene::EPT_TRIANGLES, vb->getVertexCount());
+
+       
         
-        TransformComponent* transform = cube->getComponent<TransformComponent>();
+        // TransformComponent* transform = cube->getComponent<TransformComponent>();
         
         
-        f32 angle = time * 8.0f* core::DEGTORAD;
-        transform->rotation.Y = (angle *25.0f) * core::RADTODEG;  
-        transform->rotation.Z = (-angle *25.0f) * core::RADTODEG;  
+         f32 angle = time * 8.0f* core::DEGTORAD;
+         core::vector3df pos =   cube->getPosition();
+         core::vector3df rot = cube->getRotation();
+
+
+        rot.Y = (angle *25.0f) * core::RADTODEG;  
+        rot.Z = (-angle *25.0f) * core::RADTODEG;  
  
         
-        transform->position.X = sin(angle)*5.5;
-        transform->position.Z = cos(angle)*5.5;
+        pos.X = sin(angle)*5.5;
+        pos.Z = cos(angle)*5.5;
+
+        cube->setPosition(pos);
+        cube->setRotation(rot);
 
 
 

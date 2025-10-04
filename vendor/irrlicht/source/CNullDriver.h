@@ -28,7 +28,20 @@
 
 namespace irr
 {
-namespace io
+
+	namespace video
+	{
+		class IVertexDescriptor;
+		
+	} // end namespace scene
+
+	namespace scene
+	{
+		class IVertexBuffer;
+		class IIndexBuffer;
+	} // end namespace scene
+
+	namespace io
 {
 	class IWriteFile;
 	class IReadFile;
@@ -580,7 +593,29 @@ namespace video
 			return DefaultFrameBuffer;
 		}
 
+		virtual void setTextureStates(ITexture* tex ,u32 stage = 0)  _IRR_OVERRIDE_;
+
+		virtual void drawElements(
+				video::IVertexDescriptor *descriptor,
+				scene::IVertexBuffer *vb,
+				scene::IIndexBuffer *ib,
+				scene::E_PRIMITIVE_TYPE primitiveType,
+				u32 indexCount = 0)_IRR_OVERRIDE_;
+
+			virtual void drawArrays(
+				video::IVertexDescriptor *descriptor,
+				scene::IVertexBuffer *vb,
+				scene::E_PRIMITIVE_TYPE primitiveType,
+				u32 vertexCount = 0)_IRR_OVERRIDE_;
+
  
+			virtual void setRenderStates3DMode() _IRR_OVERRIDE_;
+			virtual void setTextureStates(u32 stage = 0) _IRR_OVERRIDE_;
+
+			virtual void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel) _IRR_OVERRIDE_;
+
+ 
+
 
 	protected:
 

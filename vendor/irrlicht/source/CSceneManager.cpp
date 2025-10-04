@@ -202,10 +202,9 @@ namespace irr
 
 			ISceneNode *node = new ISceneNode(parent, this, id);
 
-			TransformComponent *transform = node->addComponent<TransformComponent>();
-			transform->position = position;
-			transform->rotation = rotation;
-			transform->scale = scale;
+			node->setPosition(position);
+			node->setRotation(rotation);
+			node->setScale(scale);
 
 			// Add Mesh component
 			scene::IMesh *mesh = this->getGeometryCreator()->createCubeMesh(core::vector3df(size, size, size));
@@ -227,10 +226,9 @@ namespace irr
 
 			ISceneNode *node = new ISceneNode(parent, this, id);
 
-			TransformComponent *transform = node->addComponent<TransformComponent>();
-			transform->position = position;
-			transform->rotation = rotation;
-			transform->scale = scale;
+			node->setPosition(position);
+			node->setRotation(rotation);
+			node->setScale(scale);
 			scene::IMesh *mesh = this->getGeometryCreator()->createSphereMesh(radius, polyCount);
 			if (mesh)
 			{
@@ -320,14 +318,11 @@ namespace irr
 			if (!result && (node->getAutomaticCulling() & scene::EAC_FRUSTUM_BOX))
 			{
 				
-				if (node->containsComponent<TransformComponent>())
-				{
 					SViewFrustum frust = *cam->getViewFrustum();
 
-					core::matrix4 invTrans(node->getComponent<TransformComponent>()->getWorldMatrix(), core::matrix4::EM4CONST_INVERSE);
-
+				
 					//transform the frustum to the node's current absolute transformation
-					//core::matrix4 invTrans(node->getAbsoluteTransformation(), core::matrix4::EM4CONST_INVERSE);
+					core::matrix4 invTrans(node->getAbsoluteTransformation(), core::matrix4::EM4CONST_INVERSE);
 					
 					frust.transform(invTrans);
 
@@ -352,7 +347,7 @@ namespace irr
 							break;
 						}
 					}
-				}
+				
 			}
 
 			_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;

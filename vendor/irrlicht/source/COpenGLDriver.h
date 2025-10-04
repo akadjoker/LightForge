@@ -19,17 +19,28 @@ namespace irr
 #include "CNullDriver.h"
 #include "IMaterialRendererServices.h"
 #include "COpenGLExtensionHandler.h"
-
+ 
  
 
 namespace irr
 {
 
+		namespace scene
+	{
+		class IVertexBuffer;
+		class IIndexBuffer;
+		class IVertexDescriptor;
+	//	class CVertexBuffer;
+	} // end namespace scene
+
+
+	
 namespace video
 {
 	class COpenGLDriver;
     class COpenGLCallBridge;
 	class COpenGLTexture;
+
 
 	class COpenGLVertexAttribute : public IVertexAttribute
 	{
@@ -158,6 +169,9 @@ namespace video
 		virtual IHardwareBuffer* createHardwareBuffer(scene::IVertexBuffer* vertexBuffer) _IRR_OVERRIDE_;
 
 		void removeAllHardwareBuffers();
+
+
+		virtual void setTextureStates(ITexture* tex ,u32 stage = 0) _IRR_OVERRIDE_;
 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
@@ -418,6 +432,8 @@ namespace video
 		//! sets the needed renderstates
 		void setRenderStates3DMode();
 
+ 
+
 		//! sets the needed renderstates
 		void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel);
 
@@ -434,6 +450,19 @@ namespace video
 		void renderPoints( u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType);
 		void renderArray(const void* indices, GLenum indexType, u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType);
 		void renderInstance(const void* indices, GLenum indexType, u32 primitiveCount, scene::E_PRIMITIVE_TYPE primitiveType, u32 instanceCount);
+
+
+		void drawElements(
+				video::IVertexDescriptor *descriptor, scene::IVertexBuffer *vb, scene::IIndexBuffer *ib, scene::E_PRIMITIVE_TYPE primitiveType, u32 indexCount)_IRR_OVERRIDE_;
+
+		void drawArrays(				video::IVertexDescriptor *descriptor,
+				scene::IVertexBuffer *vb,
+				scene::E_PRIMITIVE_TYPE primitiveType,
+				u32 vertexCount = 0)_IRR_OVERRIDE_;
+
+
+		scene::IIndexBuffer* createIndexBuffer(video::E_INDEX_TYPE type,scene::E_HARDWARE_MAPPING hint) _IRR_OVERRIDE_;
+ 
 
 		void unbindRTT(ITexture *texture);
 

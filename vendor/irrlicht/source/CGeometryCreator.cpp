@@ -233,7 +233,7 @@ IMesh* CGeometryCreator::createGeoplaneMesh(f32 radius, u32 rows, u32 columns) c
 	vb->reallocate((rows * columns) + 1);
 	ib->reallocate((((rows - 2) * columns * 2) + columns) * 3);
 
-	S3DVertex v(0, 0, 0, 0, 1, 0, SColor(255, 255, 255, 255), 0, 0);
+	video::S3DVertex v(0, 0, 0, 0, 1, 0, SColor(255, 255, 255, 255), 0, 0);
 	const float anglestep = (2 * PI) / columns;
 
 	u32 i, j;

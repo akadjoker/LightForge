@@ -77,7 +77,7 @@ namespace scene
 
 		//! Gets the up vector of the camera.
 		//! \return Returns the up vector of the camera.
-		virtual const core::vector3df& getUpVector() const _IRR_OVERRIDE_;
+		virtual const core::vector3df getUpVector() const _IRR_OVERRIDE_;
 
 		//! Gets distance from the camera to the near plane.
 		//! \return Value of the near plane of the camera.

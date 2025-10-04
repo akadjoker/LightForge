@@ -716,7 +716,7 @@ namespace irr
 
 		//! Gets the up vector of the camera.
 		//! \return Returns the up vector of the camera.
-		const core::vector3df &CCameraSceneNode::getUpVector() const
+		const core::vector3df CCameraSceneNode::getUpVector() const
 		{
 			return UpVector;
 		}

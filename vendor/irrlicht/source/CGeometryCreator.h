@@ -8,12 +8,14 @@
 #include "IGeometryCreator.h"
 #include "CMeshBuffer.h"
 
+
 namespace irr
 {
 
 namespace video
 {
 	class IVideoDriver;
+	class S3DVertex;
 }
 
 namespace scene

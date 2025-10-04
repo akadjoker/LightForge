@@ -1111,6 +1111,10 @@ class COpenGLExtensionHandler
 
 	bool OcclusionQuerySupport;
 
+
+	void extGlDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices);
+	void extGlDrawArrays(GLenum mode, GLint first, GLsizei count);
+
 	// public access to the (loaded) extensions.
 	// general functions
 	void extGlActiveTexture(GLenum texture);
@@ -2149,6 +2153,13 @@ inline void COpenGLExtensionHandler::extGlVertexAttribPointer(GLuint index, GLin
 #endif
 }
 
+
+
+inline void COpenGLExtensionHandler::extGlDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices)
+{
+    // Fallback: função core linkada (GL 1.1+ / GLES 2.0+)
+    glDrawElements(mode, count, type, indices);
+}
 // instancing
 inline void COpenGLExtensionHandler::extGlVertexAttribDivisor(GLuint index, GLuint divisor)
 {
@@ -2160,6 +2171,10 @@ inline void COpenGLExtensionHandler::extGlVertexAttribDivisor(GLuint index, GLui
 #endif
 }
 
+inline void COpenGLExtensionHandler::extGlDrawArrays(GLenum mode, GLint first, GLsizei count)
+{
+    glDrawArrays(mode, first, count);
+}
 inline void COpenGLExtensionHandler::extGlDrawElementsInstanced(GLenum mode,
 	GLsizei count,
 	GLenum type,

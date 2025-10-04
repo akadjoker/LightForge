@@ -72,7 +72,7 @@ namespace irr
             void addVertex(const core::vector3df &pos, const SColor &color) _IRR_OVERRIDE_;
             void addIndex(u16 index) _IRR_OVERRIDE_;
 
-            // Configurações
+ 
             void setAutoFlush(bool autoFlush) { AutoFlush = autoFlush; }
 
             u32 getVertexCount() const { return CurrentVertexCount; }

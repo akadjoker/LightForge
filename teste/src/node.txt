@@ -256,3 +256,386 @@ virtual core::matrix4 getRelativeTransformation() const
 
     return mat;
 }
+
+************************************************
+// ============================================
+// GETTERS DE ROTAÇÃO
+// ============================================
+
+virtual f32 getYaw() const;
+virtual f32 getPitch() const;
+virtual f32 getRoll() const;
+virtual core::vector3df getEulerAngles() const;
+virtual core::vector3df getEulerAnglesRadians() const;
+
+virtual bool isLookingAt(const core::vector3df& target, f32 tolerance = 5.0f) const;
+virtual bool isInFieldOfView(ISceneNode* other, f32 fovDegrees = 90.0f) const;
+virtual core::vector3df getDirectionTo(const core::vector3df& target) const;
+virtual core::vector3df getDirectionTo(ISceneNode* other) const;
+virtual core::vector3df getVelocityToReach(const core::vector3df& target, f32 time) const;
+virtual void lerpPosition(const core::vector3df& target, f32 factor);
+virtual void lerpRotation(const core::vector3df& targetRotation, f32 factor);
+virtual void lerpScale(const core::vector3df& targetScale, f32 factor);
+virtual void lerpTransform(ISceneNode* target, f32 factor);
+virtual void alignToNormal(const core::vector3df& normal, const core::vector3df& up = core::vector3df(0, 1, 0));
+virtual void alignUpVector(const core::vector3df& worldUp);
+virtual void resetRotation();
+virtual void resetOrientation();
+
+virtual bool isNearPosition(const core::vector3df& target, f32 tolerance = 0.1f) const;
+virtual bool isNearRotation(const core::vector3df& targetRotation, f32 tolerance = 1.0f) const;
+virtual core::vector3df getAngularVelocityToReach(const core::vector3df& targetRotation, f32 time) const;
+virtual core::vector3df localToWorld(const core::vector3df& localPos) const;
+virtual core::vector3df worldToLocal(const core::vector3df& worldPos) const;
+virtual core::vector3df localToWorldDirection(const core::vector3df& localDir) const;
+virtual core::vector3df worldToLocalDirection(const core::vector3df& worldDir) const;
+
+// ============================================
+// UTILIDADES DE DEBUG/INFO
+// ============================================
+
+//! Obtém string de debug com informações do transform
+//! \return String formatada com posição, rotação e escala
+virtual core::stringc getTransformDebugString() const;
+
+//! Imprime informações de transform no console
+virtual void printTransformInfo() const;
+
+
+
+
+// ============================================
+// GETTERS DE ROTAÇÃO
+// ============================================
+
+f32 ISceneNode::getYaw() const
+{
+    if (UseQuaternionRotation)
+    {
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        return euler.Y * core::RADTODEG;
+    }
+    return RelativeRotation.Y;
+}
+
+f32 ISceneNode::getPitch() const
+{
+    if (UseQuaternionRotation)
+    {
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        return euler.X * core::RADTODEG;
+    }
+    return RelativeRotation.X;
+}
+
+f32 ISceneNode::getRoll() const
+{
+    if (UseQuaternionRotation)
+    {
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        return euler.Z * core::RADTODEG;
+    }
+    return RelativeRotation.Z;
+}
+
+core::vector3df ISceneNode::getEulerAngles() const
+{
+    if (UseQuaternionRotation)
+    {
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        return euler * core::RADTODEG;
+    }
+    return RelativeRotation;
+}
+
+core::vector3df ISceneNode::getEulerAnglesRadians() const
+{
+    if (UseQuaternionRotation)
+    {
+        core::vector3df euler;
+        RelativeOrientationQuaternion.toEuler(euler);
+        return euler;
+    }
+    return RelativeRotation * core::DEGTORAD;
+}
+
+// ============================================
+// UTILIDADES DE DIREÇÃO E POSIÇÃO
+// ============================================
+
+bool ISceneNode::isLookingAt(const core::vector3df& target, f32 tolerance) const
+{
+    core::vector3df forward = getForwardVector();
+    core::vector3df toTarget = target - getAbsolutePosition();
+    toTarget.normalize();
+    
+    f32 dot = forward.dotProduct(toTarget);
+    f32 angle = acos(core::clamp(dot, -1.0f, 1.0f)) * core::RADTODEG;
+    
+    return angle <= tolerance;
+}
+
+bool ISceneNode::isInFieldOfView(ISceneNode* other, f32 fovDegrees) const
+{
+    if (!other) return false;
+    return isLookingAt(other->getAbsolutePosition(), fovDegrees * 0.5f);
+}
+
+core::vector3df ISceneNode::getDirectionTo(const core::vector3df& target) const
+{
+    core::vector3df dir = target - getAbsolutePosition();
+    dir.normalize();
+    return dir;
+}
+
+core::vector3df ISceneNode::getDirectionTo(ISceneNode* other) const
+{
+    if (!other) return core::vector3df(0, 0, 0);
+    return getDirectionTo(other->getAbsolutePosition());
+}
+
+core::vector3df ISceneNode::getVelocityToReach(const core::vector3df& target, f32 time) const
+{
+    if (time <= 0.0f) return core::vector3df(0, 0, 0);
+    return (target - getAbsolutePosition()) / time;
+}
+
+// ============================================
+// UTILIDADES DE INTERPOLAÇÃO
+// ============================================
+
+void ISceneNode::lerpPosition(const core::vector3df& target, f32 factor)
+{
+    factor = core::clamp(factor, 0.0f, 1.0f);
+    RelativeTranslation = RelativeTranslation.getInterpolated(target, factor);
+}
+
+void ISceneNode::lerpRotation(const core::vector3df& targetRotation, f32 factor)
+{
+    factor = core::clamp(factor, 0.0f, 1.0f);
+    
+    if (UseQuaternionRotation)
+    {
+        core::quaternion targetQuat;
+        targetQuat.set(targetRotation * core::DEGTORAD);
+        slerpOrientation(targetQuat, factor);
+    }
+    else
+    {
+        RelativeRotation = RelativeRotation.getInterpolated(targetRotation, factor);
+    }
+}
+
+void ISceneNode::lerpScale(const core::vector3df& targetScale, f32 factor)
+{
+    factor = core::clamp(factor, 0.0f, 1.0f);
+    RelativeScale = RelativeScale.getInterpolated(targetScale, factor);
+}
+
+void ISceneNode::lerpTransform(ISceneNode* target, f32 factor)
+{
+    if (!target) return;
+    
+    lerpPosition(target->getPosition(), factor);
+    lerpRotation(target->getRotation(), factor);
+    lerpScale(target->getScale(), factor);
+}
+
+// ============================================
+// UTILIDADES DE ALINHAMENTO
+// ============================================
+
+void ISceneNode::alignToNormal(const core::vector3df& normal, const core::vector3df& up)
+{
+    core::vector3df normNormal = normal;
+    normNormal.normalize();
+    
+    core::vector3df right = up.crossProduct(normNormal);
+    right.normalize();
+    
+    core::vector3df realUp = normNormal.crossProduct(right);
+    
+    core::matrix4 mat;
+    mat[0] = right.X;     mat[4] = right.Y;     mat[8] = right.Z;
+    mat[1] = realUp.X;    mat[5] = realUp.Y;    mat[9] = realUp.Z;
+    mat[2] = normNormal.X; mat[6] = normNormal.Y; mat[10] = normNormal.Z;
+    mat[3] = 0; mat[7] = 0; mat[11] = 0;
+    mat[12] = 0; mat[13] = 0; mat[14] = 0; mat[15] = 1;
+    
+    RelativeOrientationQuaternion.set(mat);
+    UseQuaternionRotation = true;
+    
+    core::vector3df euler;
+    RelativeOrientationQuaternion.toEuler(euler);
+    RelativeRotation = euler * core::RADTODEG;
+}
+
+void ISceneNode::alignUpVector(const core::vector3df& worldUp)
+{
+    core::vector3df forward = getForwardVector();
+    forward.Y = 0; // Projeta no plano horizontal
+    forward.normalize();
+    
+    core::vector3df right = worldUp.crossProduct(forward);
+    right.normalize();
+    
+    core::vector3df realForward = right.crossProduct(worldUp);
+    
+    core::matrix4 mat;
+    mat[0] = right.X;        mat[4] = right.Y;        mat[8] = right.Z;
+    mat[1] = worldUp.X;      mat[5] = worldUp.Y;      mat[9] = worldUp.Z;
+    mat[2] = realForward.X;  mat[6] = realForward.Y;  mat[10] = realForward.Z;
+    mat[3] = 0; mat[7] = 0; mat[11] = 0;
+    mat[12] = 0; mat[13] = 0; mat[14] = 0; mat[15] = 1;
+    
+    RelativeOrientationQuaternion.set(mat);
+    UseQuaternionRotation = true;
+    
+    core::vector3df euler;
+    RelativeOrientationQuaternion.toEuler(euler);
+    RelativeRotation = euler * core::RADTODEG;
+}
+
+void ISceneNode::resetRotation()
+{
+    RelativeRotation = core::vector3df(0, 0, 0);
+    if (UseQuaternionRotation)
+    {
+        RelativeOrientationQuaternion.makeIdentity();
+    }
+}
+
+void ISceneNode::resetOrientation()
+{
+    RelativeOrientationQuaternion.makeIdentity();
+    RelativeRotation = core::vector3df(0, 0, 0);
+    UseQuaternionRotation = true;
+}
+
+// ============================================
+// UTILIDADES DE VERIFICAÇÃO
+// ============================================
+
+bool ISceneNode::isNearPosition(const core::vector3df& target, f32 tolerance) const
+{
+    return getAbsolutePosition().getDistanceFrom(target) <= tolerance;
+}
+
+bool ISceneNode::isNearRotation(const core::vector3df& targetRotation, f32 tolerance) const
+{
+    core::vector3df current = getEulerAngles();
+    core::vector3df diff = targetRotation - current;
+    
+    // Normaliza ângulos para -180 a 180
+    while (diff.X > 180.0f) diff.X -= 360.0f;
+    while (diff.X < -180.0f) diff.X += 360.0f;
+    while (diff.Y > 180.0f) diff.Y -= 360.0f;
+    while (diff.Y < -180.0f) diff.Y += 360.0f;
+    while (diff.Z > 180.0f) diff.Z -= 360.0f;
+    while (diff.Z < -180.0f) diff.Z += 360.0f;
+    
+    return (fabs(diff.X) <= tolerance && 
+            fabs(diff.Y) <= tolerance && 
+            fabs(diff.Z) <= tolerance);
+}
+
+core::vector3df ISceneNode::getAngularVelocityToReach(const core::vector3df& targetRotation, f32 time) const
+{
+    if (time <= 0.0f) return core::vector3df(0, 0, 0);
+    
+    core::vector3df current = getEulerAngles();
+    core::vector3df diff = targetRotation - current;
+    
+    // Normaliza para o caminho mais curto
+    while (diff.X > 180.0f) diff.X -= 360.0f;
+    while (diff.X < -180.0f) diff.X += 360.0f;
+    while (diff.Y > 180.0f) diff.Y -= 360.0f;
+    while (diff.Y < -180.0f) diff.Y += 360.0f;
+    while (diff.Z > 180.0f) diff.Z -= 360.0f;
+    while (diff.Z < -180.0f) diff.Z += 360.0f;
+    
+    return diff / time;
+}
+
+// ============================================
+// UTILIDADES DE ESPAÇO LOCAL/GLOBAL
+// ============================================
+
+core::vector3df ISceneNode::localToWorld(const core::vector3df& localPos) const
+{
+    core::matrix4 mat = getAbsoluteTransformation();
+    core::vector3df result = localPos;
+    mat.transformVect(result);
+    return result;
+}
+
+core::vector3df ISceneNode::worldToLocal(const core::vector3df& worldPos) const
+{
+    core::matrix4 mat = getAbsoluteTransformation();
+    mat.makeInverse();
+    core::vector3df result = worldPos;
+    mat.transformVect(result);
+    return result;
+}
+
+core::vector3df ISceneNode::localToWorldDirection(const core::vector3df& localDir) const
+{
+    return transformVectorByOrientation(localDir);
+}
+
+core::vector3df ISceneNode::worldToLocalDirection(const core::vector3df& worldDir) const
+{
+    core::matrix4 mat;
+    if (UseQuaternionRotation)
+    {
+        RelativeOrientationQuaternion.getMatrix(mat);
+    }
+    else
+    {
+        mat.setRotationDegrees(RelativeRotation);
+    }
+    mat.makeInverse();
+    
+    core::vector3df result = worldDir;
+    mat.rotateVect(result);
+    return result;
+}
+
+// ============================================
+// UTILIDADES DE DEBUG/INFO
+// ============================================
+
+core::stringc ISceneNode::getTransformDebugString() const
+{
+    core::stringc str;
+    core::vector3df pos = getAbsolutePosition();
+    core::vector3df rot = getEulerAngles();
+    core::vector3df scale = getScale();
+    
+    str = "Transform: ";
+    str += "Pos(";
+    str += pos.X; str += ", ";
+    str += pos.Y; str += ", ";
+    str += pos.Z; str += ") ";
+    
+    str += "Rot(";
+    str += rot.X; str += ", ";
+    str += rot.Y; str += ", ";
+    str += rot.Z; str += ") ";
+    
+    str += "Scale(";
+    str += scale.X; str += ", ";
+    str += scale.Y; str += ", ";
+    str += scale.Z; str += ")";
+    
+    return str;
+}
+
+void ISceneNode::printTransformInfo() const
+{
+    printf("%s\n", getTransformDebugString().c_str());
+}
