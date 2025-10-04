@@ -2,18 +2,19 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 #include "pch.h"
-
 #include "CLogger.h"
+#include <cstdarg>
+#include <cstdio>
 
 namespace irr
 {
 
-	CLogger::CLogger(IEventReceiver* r)
+	CLogger::CLogger(IEventReceiver *r)
 		: LogLevel(ELL_INFORMATION), Receiver(r)
 	{
-		#ifdef _DEBUG
+#ifdef _DEBUG
 		setDebugName("CLogger");
-		#endif
+#endif
 	}
 
 	//! Returns the current set log level.
@@ -28,8 +29,64 @@ namespace irr
 		LogLevel = ll;
 	}
 
+
+
+	void CLogger::information(const c8* format, ...)
+	{
+
+		// Buffer temporário
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(buffer, sizeof(buffer), format, args);
+		va_end(args);
+
+		
+		log(buffer, ELOG_LEVEL::ELL_INFORMATION);
+	}
+	void CLogger::warning(const c8* format, ...)
+	{
+		// Buffer temporário
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(buffer, sizeof(buffer), format, args);
+		va_end(args);
+		log(buffer, ELOG_LEVEL::ELL_WARNING);
+	}
+	void CLogger::error(const c8* format, ...)
+	{
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(buffer, sizeof(buffer), format, args);
+		va_end(args);
+		log(buffer, ELOG_LEVEL::ELL_ERROR);
+
+	}
+
+	void CLogger::log(ELOG_LEVEL ll, const c8 *format, ...)
+	{
+		if (ll < LogLevel)
+			return;
+
+		// Buffer temporário
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(buffer, sizeof(buffer), format, args);
+		va_end(args);
+
+		// Chama a versão antiga
+		log(buffer, ll);
+	}
+
 	//! Prints out a text into the log
-	void CLogger::log(const c8* text, ELOG_LEVEL ll)
+	void CLogger::log(const c8 *text, ELOG_LEVEL ll)
 	{
 		if (ll < LogLevel)
 			return;
@@ -47,9 +104,8 @@ namespace irr
 		os::Printer::print(text);
 	}
 
-
 	//! Prints out a text into the log
-	void CLogger::log(const c8* text, const c8* hint, ELOG_LEVEL ll)
+	void CLogger::log(const c8 *text, const c8 *hint, ELOG_LEVEL ll)
 	{
 		if (ll < LogLevel)
 			return;
@@ -57,11 +113,11 @@ namespace irr
 		core::stringc s = text;
 		s += ": ";
 		s += hint;
-		log (s.c_str(), ll);
+		log(s.c_str(), ll);
 	}
 
 	//! Prints out a text into the log
-	void CLogger::log(const wchar_t* text, ELOG_LEVEL ll)
+	void CLogger::log(const wchar_t *text, ELOG_LEVEL ll)
 	{
 		if (ll < LogLevel)
 			return;
@@ -70,9 +126,8 @@ namespace irr
 		log(s.c_str(), ll);
 	}
 
-
 	//! Prints out a text into the log
-	void CLogger::log(const wchar_t* text, const wchar_t* hint, ELOG_LEVEL ll)
+	void CLogger::log(const wchar_t *text, const wchar_t *hint, ELOG_LEVEL ll)
 	{
 		if (ll < LogLevel)
 			return;
@@ -83,21 +138,19 @@ namespace irr
 	}
 
 	//! Prints out a text into the log
-	void CLogger::log(const c8* text, const wchar_t* hint, ELOG_LEVEL ll)
+	void CLogger::log(const c8 *text, const wchar_t *hint, ELOG_LEVEL ll)
 	{
 		if (ll < LogLevel)
 			return;
 
 		core::stringc s2 = hint;
-		log( text, s2.c_str(), ll);
+		log(text, s2.c_str(), ll);
 	}
 
 	//! Sets a new event receiver
-	void CLogger::setReceiver(IEventReceiver* r)
+	void CLogger::setReceiver(IEventReceiver *r)
 	{
 		Receiver = r;
 	}
 
-
 } // end namespace irr
-

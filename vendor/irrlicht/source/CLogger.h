@@ -26,6 +26,17 @@ public:
 	//! Sets a new log level.	virtual void setLogLevel(ELOG_LEVEL ll) _IRR_OVERRIDE_;
 	virtual void setLogLevel(ELOG_LEVEL ll) _IRR_OVERRIDE_;
 
+
+
+	virtual void information(const c8* format, ...)_IRR_OVERRIDE_; 
+	virtual void warning(const c8* format, ...)_IRR_OVERRIDE_; 
+	virtual void error(const c8* format, ...)_IRR_OVERRIDE_; 
+
+
+	
+
+	virtual void log(ELOG_LEVEL ll, const c8* format, ...) _IRR_OVERRIDE_; 
+
 	//! Prints out a text into the log
 	virtual void log(const c8* text, ELOG_LEVEL ll=ELL_INFORMATION) _IRR_OVERRIDE_;
 

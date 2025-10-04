@@ -147,11 +147,9 @@ namespace os
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
-
-#if defined(_IRR_IOS_PLATFORM_)
-// high resolution timer
-#include <mach/mach_time.h>
-#endif
+#include <cstdarg>
+#include <cstdio>
+ 
     
 namespace irr
 {
@@ -162,6 +160,11 @@ namespace os
 	void Printer::print(const c8* message)
 	{
 		printf("%s\n", message);
+	}
+
+	u32 Timer::getTinks()
+	{
+		return 0;
 	}
 
 	void Timer::initTimer(bool usePerformanceTimer)
@@ -202,6 +205,22 @@ namespace os
 	// The platform independent implementation of the printer
 	ILogger* Printer::Logger = 0;
 
+	void Printer::log(ELOG_LEVEL ll, const c8* format, ...)
+	{
+		 
+
+ 
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(buffer, sizeof(buffer), format, args);
+		va_end(args);
+
+ 
+		log(buffer, ll);
+
+	}
 	void Printer::log(const c8* message, ELOG_LEVEL ll)
 	{
 		if (Logger)

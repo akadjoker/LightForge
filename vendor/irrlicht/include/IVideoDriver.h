@@ -23,6 +23,8 @@
 #include "SExposedVideoData.h"
 
 #include "IHardwareBuffer.h"
+#include "CHardwareIndexBuffer.h"
+#include "IHardwareVertexBuffer.h"
 #include "IRWBuffer.h"
 
 namespace irr
@@ -656,10 +658,7 @@ namespace irr
 			0 or another texture first. */
 			virtual void removeAllTextures() = 0;
 
-			virtual IHardwareBuffer *createHardwareBuffer(scene::IIndexBuffer *indexBuffer) = 0;
-
-			virtual IHardwareBuffer *createHardwareBuffer(scene::IVertexBuffer *vertexBuffer) = 0;
-
+			 
 			//! Create occlusion query.
 			/** Use node for identification and mesh for occlusion test. */
 			virtual void addOcclusionQuery(scene::ISceneNode *node,
@@ -1313,14 +1312,7 @@ namespace irr
 			virtual void convertColor(const void *sP, ECOLOR_FORMAT sF, s32 sN,
 									  void *dP, ECOLOR_FORMAT dF) const = 0;
 
-			virtual IVertexDescriptor *addVertexDescriptor(const core::stringc &pName) = 0;
-
-			virtual IVertexDescriptor *getVertexDescriptor(u32 id) const = 0;
-
-			virtual IVertexDescriptor *getVertexDescriptor(const core::stringc &pName) const = 0;
-
-			virtual u32 getVertexDescriptorCount() const = 0;
-
+			 
 			//! set default frame
 			virtual void setDefaultFrameBuffer(int framebuffer) = 0;
 
@@ -1334,23 +1326,14 @@ namespace irr
 			virtual const core::matrix4 &getTransform(E_TRANSFORMATION_STATE state) const = 0;
 
 			virtual void setTextureStates(ITexture *tex, u32 stage = 0) = 0;
-			virtual void drawElements(
-				video::IVertexDescriptor *descriptor,
-				scene::IVertexBuffer *vb,
-				scene::IIndexBuffer *ib,
-				scene::E_PRIMITIVE_TYPE primitiveType,
-				u32 indexCount = 0) = 0;
-
-			virtual void drawArrays(
-				video::IVertexDescriptor *descriptor,
-				scene::IVertexBuffer *vb,
-				scene::E_PRIMITIVE_TYPE primitiveType,
-				u32 vertexCount = 0) = 0;
-
+			 
 			virtual void setRenderStates3DMode() = 0;
 			virtual void setTextureStates(u32 stage = 0) = 0;
-
 			virtual void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel) = 0;
+
+
+			virtual IHardwareIndexBuffer* 	createIndexBuffer(video::E_INDEX_TYPE type,u32 numIndexes,video::E_USAGE usage)=0;
+			virtual IHardwareVertexBuffer*	createVertexBuffer(u32 vertexSize,u32 numVertices,video::E_USAGE usage)=0;
 
 			
 			

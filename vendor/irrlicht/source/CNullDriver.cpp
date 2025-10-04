@@ -202,92 +202,14 @@ namespace irr
 
 		void CNullDriver::deleteVertexDescriptors()
 		{
-			const u32 size = VertexDescriptor.size();
-
-			for (u32 i = 0; i < size; ++i)
-				VertexDescriptor[i]->drop();
-
-			VertexDescriptor.clear();
+			 
 		}
 
 		bool CNullDriver::createVertexDescriptors()
 		{
-			deleteVertexDescriptors();
+			 
 
-			addVertexDescriptor("standard");
-			VertexDescriptor[0]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[0]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[0]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[0]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("2tcoords");
-			VertexDescriptor[1]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[1]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[1]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[1]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[1]->addAttribute("inTexCoord1", 2, EVAS_TEXCOORD1, EVAT_FLOAT, 0);
-			VertexDescriptor[1]->addAttribute("inLightmap", 3, EVAS_LIGHTMAP, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("tangents");
-			VertexDescriptor[2]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[2]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[2]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[2]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[2]->addAttribute("inTangent", 3, EVAS_TANGENT, EVAT_FLOAT, 0);
-			VertexDescriptor[2]->addAttribute("inBinormal", 3, EVAS_BINORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[2]->addAttribute("inData", 2, EVAS_VERTEXDATA, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("skin");
-			VertexDescriptor[3]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[3]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[3]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[3]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[3]->addAttribute("inBlendIndex", 4, EVAS_BLEND_INDICES, EVAT_FLOAT, 0);
-			VertexDescriptor[3]->addAttribute("inBlendWeight", 4, EVAS_BLEND_WEIGHTS, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("skintangents");
-			VertexDescriptor[4]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[4]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inTangent", 3, EVAS_TANGENT, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inBinormal", 3, EVAS_BINORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inData", 2, EVAS_VERTEXDATA, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inBlendIndex", 4, EVAS_BLEND_INDICES, EVAT_FLOAT, 0);
-			VertexDescriptor[4]->addAttribute("inBlendWeight", 4, EVAS_BLEND_WEIGHTS, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("2tcoordstangents");
-			VertexDescriptor[5]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[5]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inTexCoord1", 2, EVAS_TEXCOORD1, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inLightmap", 3, EVAS_LIGHTMAP, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inTangent", 3, EVAS_TANGENT, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inBinormal", 3, EVAS_BINORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[5]->addAttribute("inData", 2, EVAS_VERTEXDATA, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("skin2tcoordtangents");
-			VertexDescriptor[6]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inNormal", 3, EVAS_NORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[6]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inTexCoord1", 2, EVAS_TEXCOORD1, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inLightmap", 3, EVAS_LIGHTMAP, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inTangent", 3, EVAS_TANGENT, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inBinormal", 3, EVAS_BINORMAL, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inData", 2, EVAS_VERTEXDATA, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inBlendIndex", 4, EVAS_BLEND_INDICES, EVAT_FLOAT, 0);
-			VertexDescriptor[6]->addAttribute("inBlendWeight", 4, EVAS_BLEND_WEIGHTS, EVAT_FLOAT, 0);
-
-			addVertexDescriptor("lines");
-			VertexDescriptor[7]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[7]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-
-			addVertexDescriptor("sprite");
-			VertexDescriptor[8]->addAttribute("inPosition", 3, EVAS_POSITION, EVAT_FLOAT, 0);
-			VertexDescriptor[8]->addAttribute("inColor", 4, EVAS_COLOR, EVAT_UBYTE, 0);
-			VertexDescriptor[8]->addAttribute("inTexCoord0", 2, EVAS_TEXCOORD0, EVAT_FLOAT, 0);
+			 
 
 			return true;
 		}
@@ -877,129 +799,25 @@ namespace irr
 		void CNullDriver::draw3DLine(const core::vector3df &start,
 									 const core::vector3df &end, SColor color)
 		{
-			scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], EIT_16BIT);
-			meshBuffer->setPrimitiveType(scene::EPT_LINES);
-
-			scene::IVertexBuffer *vertices = meshBuffer->getVertexBuffer(0);
-			scene::IIndexBuffer *indices = meshBuffer->getIndexBuffer();
-
-			indices->reallocate(2);
-			vertices->reallocate(2);
-
-			indices->addIndex(0);
-			indices->addIndex(1);
-
-			video::S3DVertex vert;
-			vert.Color = color;
-
-			vert.Pos = start;
-			vertices->addVertex(&vert);
-
-			vert.Pos = end;
-			vertices->addVertex(&vert);
-
-			drawMeshBuffer(meshBuffer);
-
-			meshBuffer->drop();
+			 
 		}
 
 		void CNullDriver::draw3DLine(const core::array<core::vector3df> &listPoint, SColor color)
 		{
-			scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], EIT_16BIT);
-			meshBuffer->setPrimitiveType(scene::EPT_LINE_STRIP);
-
-			scene::IVertexBuffer *vertices = meshBuffer->getVertexBuffer(0);
-			scene::IIndexBuffer *indices = meshBuffer->getIndexBuffer();
-
-			u32 numVertex = listPoint.size();
-			indices->reallocate(numVertex);
-			vertices->reallocate(numVertex);
-
-			video::S3DVertex vert;
-
-			for (u32 i = 0; i < numVertex; i++)
-			{
-				vert.Color = color;
-				vert.Pos = listPoint[i];
-
-				indices->addIndex(i);
-				vertices->addVertex(&vert);
-			}
-
-			drawMeshBuffer(meshBuffer);
-
-			meshBuffer->drop();
+			 
+ 
 		}
 
 		//! Draws a 3d triangle.
 		void CNullDriver::draw3DTriangle(const core::triangle3df &triangle, SColor color)
 		{
-			scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], EIT_16BIT);
-			meshBuffer->setPrimitiveType(scene::EPT_LINES);
-
-			scene::IVertexBuffer *vertices = meshBuffer->getVertexBuffer(0);
-			scene::IIndexBuffer *indices = meshBuffer->getIndexBuffer();
-
-			indices->reallocate(3);
-			vertices->reallocate(3);
-
-			indices->addIndex(0);
-			indices->addIndex(1);
-			indices->addIndex(2);
-
-			video::S3DVertex vert;
-			vert.Color = color;
-			vert.Normal = triangle.getNormal().normalize();
-
-			vert.Pos = triangle.pointA;
-			vert.TCoords.set(0.f, 0.f);
-			vertices->addVertex(&vert);
-
-			vert.Pos = triangle.pointB;
-			vert.TCoords.set(0.5f, 1.f);
-			vertices->addVertex(&vert);
-
-			vert.Pos = triangle.pointC;
-			vert.TCoords.set(1.f, 0.f);
-			vertices->addVertex(&vert);
-
-			drawMeshBuffer(meshBuffer);
-
-			meshBuffer->drop();
+			 
 		}
 
 		//! Draws a 3d axis aligned box.
 		void CNullDriver::draw3DBox(const core::aabbox3d<f32> &box, SColor color)
 		{
-			core::vector3df edges[8];
-			box.getEdges(edges);
-
-			scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], EIT_16BIT);
-			meshBuffer->setPrimitiveType(scene::EPT_LINES);
-
-			scene::IVertexBuffer *vertices = meshBuffer->getVertexBuffer(0);
-			scene::IIndexBuffer *indices = meshBuffer->getIndexBuffer();
-
-			indices->reallocate(24);
-			vertices->reallocate(24);
-
-			for (u32 i = 0; i < 24; i++)
-				indices->addIndex(i);
-
-			video::S3DVertex vert;
-			vert.Color = color;
-
-			u32 edgeIndex[] = {5, 1, 1, 3, 3, 7, 7, 5, 0, 2, 2, 6, 6, 4, 4, 0, 1, 0, 3, 2, 7, 6, 5, 4};
-
-			for (u32 i = 0; i < 24; ++i)
-			{
-				vert.Pos = edges[edgeIndex[i]];
-				vertices->addVertex(&vert);
-			}
-
-			drawMeshBuffer(meshBuffer);
-
-			meshBuffer->drop();
+			 
 		}
 
 		//! returns color format
@@ -1656,154 +1474,101 @@ namespace irr
 		//! Draws the normals of a mesh buffer
 		void CNullDriver::drawMeshBufferNormals(const scene::IMeshBuffer *mb, f32 length, SColor color)
 		{
-			if (!mb || !mb->isVertexBufferCompatible())
-				return;
+			// if (!mb || !mb->isVertexBufferCompatible())
+			// 	return;
 
-			const bool normalize = mb->getMaterial().NormalizeNormals;
+			// const bool normalize = mb->getMaterial().NormalizeNormals;
 
-			int Found = 0;
+			// int Found = 0;
 
-			video::IVertexDescriptor *vd = mb->getVertexDescriptor();
+			// video::IVertexDescriptor *vd = mb->getVertexDescriptor();
 
-			u32 positionBufferID = 0;
-			u32 positionOffset = 0;
+			// u32 positionBufferID = 0;
+			// u32 positionOffset = 0;
 
-			u32 normalBufferID = 0;
-			u32 normalOffset = 0;
+			// u32 normalBufferID = 0;
+			// u32 normalOffset = 0;
 
-			const u32 attributeCount = vd->getAttributeCount();
+			// const u32 attributeCount = vd->getAttributeCount();
 
-			for (u32 i = 0; i < attributeCount; ++i)
-			{
-				video::IVertexAttribute *attribute = vd->getAttribute(i);
+			// for (u32 i = 0; i < attributeCount; ++i)
+			// {
+			// 	video::IVertexAttribute *attribute = vd->getAttribute(i);
 
-				switch (attribute->getSemantic())
-				{
-				case video::EVAS_POSITION:
-					positionBufferID = attribute->getBufferID();
-					positionOffset = attribute->getOffset();
-					++Found;
-					break;
-				case video::EVAS_NORMAL:
-					normalBufferID = attribute->getBufferID();
-					normalOffset = attribute->getOffset();
-					++Found;
-					break;
-				default:
-					break;
-				}
-			}
+			// 	switch (attribute->getSemantic())
+			// 	{
+			// 	case video::EVAS_POSITION:
+			// 		positionBufferID = attribute->getBufferID();
+			// 		positionOffset = attribute->getOffset();
+			// 		++Found;
+			// 		break;
+			// 	case video::EVAS_NORMAL:
+			// 		normalBufferID = attribute->getBufferID();
+			// 		normalOffset = attribute->getOffset();
+			// 		++Found;
+			// 		break;
+			// 	default:
+			// 		break;
+			// 	}
+			// }
 
-			if (Found != 2)
-				return;
+			// if (Found != 2)
+			// 	return;
 
-			core::vector3df *position = 0;
-			core::vector3df *normal = 0;
+			// core::vector3df *position = 0;
+			// core::vector3df *normal = 0;
 
-			scene::IIndexBuffer *ib = mb->getIndexBuffer();
-			scene::IVertexBuffer *vbP = mb->getVertexBuffer(positionBufferID);
-			scene::IVertexBuffer *vbN = mb->getVertexBuffer(normalBufferID);
+			// scene::IIndexBuffer *ib = mb->getIndexBuffer();
+			// scene::IVertexBuffer *vbP = mb->getVertexBuffer(positionBufferID);
+			// scene::IVertexBuffer *vbN = mb->getVertexBuffer(normalBufferID);
 
-			const u32 vertexSizeP = vbP->getVertexSize();
-			const u32 vertexCountP = vbP->getVertexCount();
-			const u32 vertexSizeN = vbN->getVertexSize();
-			const u32 vertexCountN = vbN->getVertexCount();
+			// const u32 vertexSizeP = vbP->getVertexSize();
+			// const u32 vertexCountP = vbP->getVertexCount();
+			// const u32 vertexSizeN = vbN->getVertexSize();
+			// const u32 vertexCountN = vbN->getVertexCount();
 
-			u8 *positionData = static_cast<u8 *>(vbP->getVertices());
-			positionData += positionOffset;
+			// u8 *positionData = static_cast<u8 *>(vbP->getVertices());
+			// positionData += positionOffset;
 
-			u8 *normalData = static_cast<u8 *>(vbN->getVertices());
-			normalData += normalOffset;
+			// u8 *normalData = static_cast<u8 *>(vbN->getVertices());
+			// normalData += normalOffset;
 
-			scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], ib->getType());
-			meshBuffer->setPrimitiveType(scene::EPT_LINES);
+			// scene::IMeshBuffer *meshBuffer = new scene::CMeshBuffer<S3DVertex>(VertexDescriptor[0], ib->getType());
+			// meshBuffer->setPrimitiveType(scene::EPT_LINES);
 
-			scene::IVertexBuffer *vertexBuffer = meshBuffer->getVertexBuffer(0);
-			scene::IIndexBuffer *indexBuffer = meshBuffer->getIndexBuffer();
+			// scene::IVertexBuffer *vertexBuffer = meshBuffer->getVertexBuffer(0);
+			// scene::IIndexBuffer *indexBuffer = meshBuffer->getIndexBuffer();
 
-			vertexBuffer->reallocate(vertexCountP * 2);
-			indexBuffer->reallocate(vertexCountP * 2);
+			// vertexBuffer->reallocate(vertexCountP * 2);
+			// indexBuffer->reallocate(vertexCountP * 2);
 
-			for (u32 i = 0; i < vertexCountP; ++i)
-			{
-				indexBuffer->addIndex(i * 2);
-				indexBuffer->addIndex(i * 2 + 1);
+			// for (u32 i = 0; i < vertexCountP; ++i)
+			// {
+			// 	indexBuffer->addIndex(i * 2);
+			// 	indexBuffer->addIndex(i * 2 + 1);
 
-				position = (core::vector3df *)(positionData + vertexSizeP * i);
-				normal = (core::vector3df *)(normalData + vertexSizeN * i);
+			// 	position = (core::vector3df *)(positionData + vertexSizeP * i);
+			// 	normal = (core::vector3df *)(normalData + vertexSizeN * i);
 
-				core::vector3df normalizedNormal = *normal;
+			// 	core::vector3df normalizedNormal = *normal;
 
-				if (normalize)
-					normalizedNormal.normalize();
+			// 	if (normalize)
+			// 		normalizedNormal.normalize();
 
-				S3DVertex vert;
-				vert.Color = color;
-				vert.Pos = *position;
-				vertexBuffer->addVertex(&vert);
-				vert.Pos = *position + (normalizedNormal * length);
-				vertexBuffer->addVertex(&vert);
-			}
+			// 	S3DVertex vert;
+			// 	vert.Color = color;
+			// 	vert.Pos = *position;
+			// 	vertexBuffer->addVertex(&vert);
+			// 	vert.Pos = *position + (normalizedNormal * length);
+			// 	vertexBuffer->addVertex(&vert);
+			// }
 
-			drawMeshBuffer(meshBuffer);
+			// drawMeshBuffer(meshBuffer);
 
-			meshBuffer->drop();
+			// meshBuffer->drop();
 		}
 
-		IVertexDescriptor *CNullDriver::addVertexDescriptor(const core::stringc &pName)
-		{
-			for (u32 i = 0; i < VertexDescriptor.size(); ++i)
-				if (pName == VertexDescriptor[i]->getName())
-					return VertexDescriptor[i];
-
-			CVertexDescriptor *vertexDescriptor = new CVertexDescriptor(pName, VertexDescriptor.size());
-			VertexDescriptor.push_back(vertexDescriptor);
-
-			return vertexDescriptor;
-		}
-
-		IVertexDescriptor *CNullDriver::getVertexDescriptor(u32 id) const
-		{
-			if (id < VertexDescriptor.size())
-				return VertexDescriptor[id];
-
-			return 0;
-		}
-
-		IVertexDescriptor *CNullDriver::getVertexDescriptor(const core::stringc &pName) const
-		{
-			for (u32 i = 0; i < VertexDescriptor.size(); ++i)
-				if (pName == VertexDescriptor[i]->getName())
-					return VertexDescriptor[i];
-
-			return 0;
-		}
-
-		u32 CNullDriver::getVertexDescriptorCount() const
-		{
-			return VertexDescriptor.size();
-		}
-
-		IHardwareBuffer *CNullDriver::createHardwareBuffer(scene::IIndexBuffer *indexBuffer)
-		{
-			return 0;
-		}
-
-		IHardwareBuffer *CNullDriver::createHardwareBuffer(scene::IVertexBuffer *vertexBuffer)
-		{
-			return 0;
-		}
-
-		bool CNullDriver::isHardwareBufferRecommend(const scene::IMeshBuffer *mb)
-		{
-			if (!mb || (mb->getHardwareMappingHint_Index() == scene::EHM_NEVER && mb->getHardwareMappingHint_Vertex() == scene::EHM_NEVER))
-				return false;
-
-			if (mb->getVertexBuffer()->getVertexCount() < MinVertexCountForVBO)
-				return false;
-
-			return true;
-		}
+	  
 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
@@ -2519,24 +2284,24 @@ namespace irr
 			(void)stage;
 			(void)tex;
 		}
-		void CNullDriver::drawElements(video::IVertexDescriptor *descriptor, scene::IVertexBuffer *vb, scene::IIndexBuffer *ib, scene::E_PRIMITIVE_TYPE primitiveType, u32 indexCount)
-		{
-			IRR_UNUSED(descriptor);
-			IRR_UNUSED(vb);
-			IRR_UNUSED(ib);
-			IRR_UNUSED(primitiveType);
-			IRR_UNUSED(indexCount);
-			os::Printer::log("NullDriver::drawEldemnts: not supported", ELL_INFORMATION);
-		}
-		void CNullDriver::drawArrays(video::IVertexDescriptor *descriptor, scene::IVertexBuffer *vb, scene::E_PRIMITIVE_TYPE primitiveType, u32 vertexCount)
-		{
-			IRR_UNUSED(descriptor);
-			IRR_UNUSED(vb);
-			IRR_UNUSED(primitiveType);
-			IRR_UNUSED(vertexCount);
-			os::Printer::log("NullDriver::drawArrays: not supported", ELL_INFORMATION);
-		}
+	 
 
+		IHardwareIndexBuffer*   CNullDriver::createIndexBuffer(video::E_INDEX_TYPE type,u32 numIndexes,video::E_USAGE usage) 
+		{
+			IRR_UNUSED(type);
+			IRR_UNUSED(numIndexes);
+			IRR_UNUSED(usage);
+			os::Printer::log("CNullDriver createIndexBuffer",ELL_WARNING);
+			return nullptr;
+		}
+		IHardwareVertexBuffer*	CNullDriver::createVertexBuffer(u32 vertexSize,u32 numVertices,video::E_USAGE usage)
+		{
+			IRR_UNUSED(vertexSize);
+			IRR_UNUSED(numVertices);
+			IRR_UNUSED(usage);
+			os::Printer::log("CNullDriver createVertexBuffer",ELL_WARNING);
+			return nullptr;
+		}
 	 
 	 
 

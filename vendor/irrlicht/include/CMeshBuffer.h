@@ -381,27 +381,7 @@ namespace scene
 				append(meshBuffer->getVertexBuffer(i), i, 0);
 		}
 
-		//! get the current hardware mapping hint
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint_Vertex(u32 id = 0) const
-		{
-			return (id < VertexBuffer.size()) ? VertexBuffer[id]->getHardwareMappingHint() : EHM_NEVER;
-		}
-
-		//! get the current hardware mapping hint
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint_Index() const
-		{
-			return IndexBuffer->getHardwareMappingHint();
-		}
-
-		//! set the hardware mapping hint, for driver
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING pMappingHint, E_BUFFER_TYPE type = EBT_VERTEX_AND_INDEX, u32 id = 0)
-		{
-			if((type == EBT_VERTEX_AND_INDEX || type == EBT_VERTEX) && id < VertexBuffer.size())
-				VertexBuffer[id]->setHardwareMappingHint(pMappingHint);
-
-			if(type == EBT_VERTEX_AND_INDEX || type == EBT_INDEX)
-				IndexBuffer->setHardwareMappingHint(pMappingHint);
-		}
+	 
 
 		//! flags the mesh as changed, reloads hardware buffers
 		virtual void setDirty(E_BUFFER_TYPE type = EBT_VERTEX_AND_INDEX, u32 id = 0)

@@ -98,6 +98,7 @@
  
  #include "ILinesBatch.h"
  
+ 
 
 #include "IShaderConstantSetCallBack.h"
 #include "IShader.h"
@@ -136,6 +137,11 @@
 #include "triangle3d.h"
 #include "vector2d.h"
 #include "vector3d.h"
+
+#include "VertexElement.h"
+#include "IHardwareIndexBuffer.h"
+#include "IHardwareVertexBuffer.h"
+#include "IHardwareBuffer.h"
 
 /*! \mainpage Irrlicht Engine 1.9 API documentation
  *

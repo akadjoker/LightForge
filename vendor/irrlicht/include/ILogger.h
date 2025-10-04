@@ -75,6 +75,14 @@ public:
 	virtual void log(const c8* text, const c8* hint, ELOG_LEVEL ll=ELL_INFORMATION) = 0;
 	virtual void log(const c8* text, const wchar_t* hint, ELOG_LEVEL ll=ELL_INFORMATION) = 0;
 
+
+	virtual void log(ELOG_LEVEL ll, const c8* format, ...)=0; 
+
+	virtual void information(const c8* format, ...)=0; 
+	virtual void warning(const c8* format, ...)=0; 
+	virtual void error(const c8* format, ...)=0; 
+
+
 	//! Prints out a text into the log
 	/** \param text: Text to print out.
 	\param hint: Additional info. This string is added after a " :" to the

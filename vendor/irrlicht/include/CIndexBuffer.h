@@ -14,7 +14,7 @@ namespace scene
 	class CIndexBuffer : public IIndexBuffer
 	{
 	public:
-		CIndexBuffer(video::E_INDEX_TYPE type = video::EIT_16BIT) : Type(type), HardwareMappingHint(EHM_NEVER), ChangedID(1), Indices(0)
+		CIndexBuffer(video::E_INDEX_TYPE type = video::EIT_16BIT) : Type(type), ChangedID(1), Indices(0)
 		{
 #ifdef _DEBUG
 			setDebugName("CIndexBuffer");
@@ -25,11 +25,11 @@ namespace scene
 				Indices = new CIndexList<u16>();
 		}
 
-		CIndexBuffer(const CIndexBuffer &indexBuffer) : Type(video::EIT_16BIT), HardwareMappingHint(EHM_NEVER), ChangedID(1), Indices(0)
+		CIndexBuffer(const CIndexBuffer &indexBuffer) : Type(video::EIT_16BIT),   ChangedID(1), Indices(0)
 		{
 			Type = indexBuffer.Type;
 
-			HardwareMappingHint = indexBuffer.HardwareMappingHint;
+		 
 
 			if (Type == video::EIT_32BIT)
 				Indices = new CIndexList<u32>();
@@ -119,19 +119,7 @@ namespace scene
 
 			Indices = IndicesList;
 		}
-
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint() const
-		{
-			return HardwareMappingHint;
-		}
-
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING hardwareMappingHint)
-		{
-			if (HardwareMappingHint != hardwareMappingHint)
-				setDirty();
-
-			HardwareMappingHint = hardwareMappingHint;
-		}
+ 
 
 		virtual void addIndex(const u32& index)
 		{
@@ -168,8 +156,7 @@ namespace scene
 
 		virtual void setDirty()
 		{
-			if (HardwareBuffer)
-				HardwareBuffer->requestUpdate();
+			 
 
 			++ChangedID;
 		}
@@ -283,8 +270,7 @@ namespace scene
 		};
 
 		video::E_INDEX_TYPE Type;
-
-		E_HARDWARE_MAPPING HardwareMappingHint;
+ 
 
 		u32 ChangedID;
 

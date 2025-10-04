@@ -16,14 +16,13 @@ namespace scene
 	class IVertexBuffer : public virtual IReferenceCounted
 	{
 	public:
-		IVertexBuffer() : HardwareBuffer(0)
+		IVertexBuffer()  
 		{
 		}
 
 		virtual ~IVertexBuffer()
 		{
-			if (HardwareBuffer)
-				HardwareBuffer->drop();
+			 
 		}
 
 		virtual void clear() = 0;
@@ -38,10 +37,7 @@ namespace scene
 
 		virtual void fill(u32 used) = 0;
 
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint() const = 0;
-
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING hardwareMappingHint) = 0;
-
+		 
 		virtual void addVertex(const void* vertex) = 0;
 
 		virtual const void* getVertex(u32 id) const = 0;
@@ -58,25 +54,10 @@ namespace scene
 
 		virtual u32 getChangedID() const = 0;
 
-		video::IHardwareBuffer* getHardwareBuffer() const
-		{
-			return HardwareBuffer;
-		}
-
-		// externalMemoryHandler parameter is used only by hardware buffers.
-		void setHardwareBuffer(video::IHardwareBuffer* hardwareBuffer, bool externalMemoryHandler = false)
-		{
-			if (!externalMemoryHandler && HardwareBuffer)
-				HardwareBuffer->drop();
-
-			HardwareBuffer = hardwareBuffer;
-
-			if (!externalMemoryHandler && HardwareBuffer)
-				HardwareBuffer->grab();
-		}
+		 
 
 	protected:
-		video::IHardwareBuffer* HardwareBuffer;
+	 
 	};
 }
 }

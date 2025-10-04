@@ -5,7 +5,7 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
 add_executable(component_scene
-  src/main.cpp
+  src/main.cpp src/glad.cpp
 )
 
  
@@ -16,4 +16,4 @@ SDL2::SDL2
 )
 
  
- 
+   

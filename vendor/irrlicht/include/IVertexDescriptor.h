@@ -13,8 +13,7 @@ namespace irr
 {
 namespace video
 {
-	// Remember declare Semantic Name (CD3D11VertexDescriptor)
-	// getSemanticName
+	 
 	enum E_VERTEX_ATTRIBUTE_SEMANTIC
 	{
 		EVAS_POSITION = 0,

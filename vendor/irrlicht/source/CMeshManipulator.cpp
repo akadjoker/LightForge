@@ -1387,428 +1387,429 @@ IMesh* CMeshManipulator::createForsythOptimizedMesh(const IMesh* mesh) const
 	if (!mesh)
 		return 0;
 
-	const u32 mbcount = mesh->getMeshBufferCount();
-
-	// TO-DO: support mesh buffers with more than 1 vertex buffer
-	for (u32 b = 0; b < mbcount; ++b)
-		if (mesh->getMeshBuffer(b)->getVertexBufferCount() > 1)
-			return 0;
-
-	SMesh *newmesh = new SMesh();
-	newmesh->BoundingBox = mesh->getBoundingBox();
-
-	for (u32 b = 0; b < mbcount; ++b)
-	{
-		const IMeshBuffer *mb = mesh->getMeshBuffer(b);
-
-		if (mb->getIndexBuffer()->getType() != video::EIT_16BIT)
-		{
-			os::Printer::log("Cannot optimize a mesh with 32bit indices", ELL_ERROR);
-			newmesh->drop();
-			return 0;
-		}
-
-		const u32 icount = mb->getIndexBuffer()->getIndexCount();
-		const u32 tcount = icount / 3;
-		const u32 vcount = mb->getVertexBuffer(0)->getVertexCount();
-		const u16 *ind = (u16*)mb->getIndexBuffer()->getIndices();
-
-		vcache *vc = new vcache[vcount];
-		tcache *tc = new tcache[tcount];
-
-		f_lru lru(vc, tc);
-
-		// init
-		for (u16 i = 0; i < vcount; i++)
-		{
-			vc[i].score = 0;
-			vc[i].cachepos = -1;
-			vc[i].NumActiveTris = 0;
-		}
-
-		// First pass: count how many times a vert is used
-		for (u32 i = 0; i < icount; i += 3)
-		{
-			vc[ind[i]].NumActiveTris++;
-			vc[ind[i + 1]].NumActiveTris++;
-			vc[ind[i + 2]].NumActiveTris++;
-
-			const u32 tri_ind = i/3;
-			tc[tri_ind].ind[0] = ind[i];
-			tc[tri_ind].ind[1] = ind[i + 1];
-			tc[tri_ind].ind[2] = ind[i + 2];
-		}
-
-		// Second pass: list of each triangle
-		for (u32 i = 0; i < tcount; i++)
-		{
-			vc[tc[i].ind[0]].tris.push_back(i);
-			vc[tc[i].ind[1]].tris.push_back(i);
-			vc[tc[i].ind[2]].tris.push_back(i);
-
-			tc[i].drawn = false;
-		}
-
-		// Give initial scores
-		for (u16 i = 0; i < vcount; i++)
-		{
-			vc[i].score = FindVertexScore(&vc[i]);
-		}
-		for (u32 i = 0; i < tcount; i++)
-		{
-			tc[i].score =
-					vc[tc[i].ind[0]].score +
-					vc[tc[i].ind[1]].score +
-					vc[tc[i].ind[2]].score;
-		}
-
-		switch(mb->getVertexBuffer(0)->getVertexSize())
-		{
-		case sizeof(video::S3DVertex):
-			{
-				video::S3DVertex *v = (video::S3DVertex *) mb->getVertexBuffer(0)->getVertices();
-
-				CMeshBuffer<video::S3DVertex> *buf = new CMeshBuffer<video::S3DVertex>(mb->getVertexDescriptor(), video::EIT_16BIT);
-				buf->getMaterial() = mb->getMaterial();
-
-				buf->getVertexBuffer(0)->reallocate(vcount);
-				buf->getIndexBuffer()->reallocate(icount);
-
-				core::map<const video::S3DVertex, const u16> sind; // search index for fast operation
-				typedef core::map<const video::S3DVertex, const u16>::Node snode;
-
-				// Main algorithm
-				u32 highest = 0;
-				u32 drawcalls = 0;
-				for (;;)
-				{
-					if (tc[highest].drawn)
-					{
-						bool found = false;
-						float hiscore = 0;
-						for (u32 t = 0; t < tcount; t++)
-						{
-							if (!tc[t].drawn)
-							{
-								if (tc[t].score > hiscore)
-								{
-									highest = t;
-									hiscore = tc[t].score;
-									found = true;
-								}
-							}
-						}
-						if (!found)
-							break;
-					}
-
-					// Output the best triangle
-					u16 newind = buf->getVertexBuffer(0)->getVertexCount();
-
-					snode *s = sind.find(v[tc[highest].ind[0]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[0]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[1]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[1]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[2]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[2]], newind);
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					vc[tc[highest].ind[0]].NumActiveTris--;
-					vc[tc[highest].ind[1]].NumActiveTris--;
-					vc[tc[highest].ind[2]].NumActiveTris--;
-
-					tc[highest].drawn = true;
-
-					for (u16 j = 0; j < 3; j++)
-					{
-						vcache *vert = &vc[tc[highest].ind[j]];
-						for (u16 t = 0; t < vert->tris.size(); t++)
-						{
-							if (highest == vert->tris[t])
-							{
-								vert->tris.erase(t);
-								break;
-							}
-						}
-					}
-
-					lru.add(tc[highest].ind[0]);
-					lru.add(tc[highest].ind[1]);
-					highest = lru.add(tc[highest].ind[2], true);
-					drawcalls++;
-				}
-
-				buf->getBoundingBox() = mb->getBoundingBox();
-				newmesh->addMeshBuffer(buf);
-				buf->drop();
-			}
-			break;
-		case sizeof(video::S3DVertex2TCoords):
-			{
-				video::S3DVertex2TCoords *v = (video::S3DVertex2TCoords *) mb->getVertexBuffer(0)->getVertices();
-
-				CMeshBuffer<video::S3DVertex2TCoords> *buf = new CMeshBuffer<video::S3DVertex2TCoords>(mb->getVertexDescriptor(), video::EIT_16BIT);
-				buf->getMaterial() = mb->getMaterial();
-
-				buf->getVertexBuffer(0)->reallocate(vcount);
-				buf->getIndexBuffer()->reallocate(icount);
-
-				core::map<const video::S3DVertex2TCoords, const u16> sind; // search index for fast operation
-				typedef core::map<const video::S3DVertex2TCoords, const u16>::Node snode;
-
-				// Main algorithm
-				u32 highest = 0;
-				u32 drawcalls = 0;
-				for (;;)
-				{
-					if (tc[highest].drawn)
-					{
-						bool found = false;
-						float hiscore = 0;
-						for (u32 t = 0; t < tcount; t++)
-						{
-							if (!tc[t].drawn)
-							{
-								if (tc[t].score > hiscore)
-								{
-									highest = t;
-									hiscore = tc[t].score;
-									found = true;
-								}
-							}
-						}
-						if (!found)
-							break;
-					}
-
-					// Output the best triangle
-					u16 newind = buf->getVertexBuffer(0)->getVertexCount();
-
-					snode *s = sind.find(v[tc[highest].ind[0]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[0]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[1]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[1]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[2]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[2]], newind);
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					vc[tc[highest].ind[0]].NumActiveTris--;
-					vc[tc[highest].ind[1]].NumActiveTris--;
-					vc[tc[highest].ind[2]].NumActiveTris--;
-
-					tc[highest].drawn = true;
-
-					for (u16 j = 0; j < 3; j++)
-					{
-						vcache *vert = &vc[tc[highest].ind[j]];
-						for (u16 t = 0; t < vert->tris.size(); t++)
-						{
-							if (highest == vert->tris[t])
-							{
-								vert->tris.erase(t);
-								break;
-							}
-						}
-					}
-
-					lru.add(tc[highest].ind[0]);
-					lru.add(tc[highest].ind[1]);
-					highest = lru.add(tc[highest].ind[2]);
-					drawcalls++;
-				}
-
-				buf->getBoundingBox() = mb->getBoundingBox();
-				newmesh->addMeshBuffer(buf);
-				buf->drop();
-
-			}
-			break;
-		case sizeof(video::S3DVertexTangents):
-			{
-				video::S3DVertexTangents *v = (video::S3DVertexTangents *) mb->getVertexBuffer(0)->getVertices();
-
-				CMeshBuffer<video::S3DVertexTangents> *buf = new CMeshBuffer<video::S3DVertexTangents>(mb->getVertexDescriptor(), video::EIT_16BIT);
-				buf->getMaterial() = mb->getMaterial();
-
-				buf->getVertexBuffer(0)->reallocate(vcount);
-				buf->getIndexBuffer()->reallocate(icount);
-
-				core::map<const video::S3DVertexTangents, const u16> sind; // search index for fast operation
-				typedef core::map<const video::S3DVertexTangents, const u16>::Node snode;
-
-				// Main algorithm
-				u32 highest = 0;
-				u32 drawcalls = 0;
-				for (;;)
-				{
-					if (tc[highest].drawn)
-					{
-						bool found = false;
-						float hiscore = 0;
-						for (u32 t = 0; t < tcount; t++)
-						{
-							if (!tc[t].drawn)
-							{
-								if (tc[t].score > hiscore)
-								{
-									highest = t;
-									hiscore = tc[t].score;
-									found = true;
-								}
-							}
-						}
-						if (!found)
-							break;
-					}
-
-					// Output the best triangle
-					u16 newind = buf->getVertexBuffer(0)->getVertexCount();
-
-					snode *s = sind.find(v[tc[highest].ind[0]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[0]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[1]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[1]], newind);
-						newind++;
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					s = sind.find(v[tc[highest].ind[2]]);
-
-					if (!s)
-					{
-						buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
-						buf->getIndexBuffer()->addIndex(newind);
-						sind.insert(v[tc[highest].ind[2]], newind);
-					}
-					else
-					{
-						buf->getIndexBuffer()->addIndex(s->getValue());
-					}
-
-					vc[tc[highest].ind[0]].NumActiveTris--;
-					vc[tc[highest].ind[1]].NumActiveTris--;
-					vc[tc[highest].ind[2]].NumActiveTris--;
-
-					tc[highest].drawn = true;
-
-					for (u16 j = 0; j < 3; j++)
-					{
-						vcache *vert = &vc[tc[highest].ind[j]];
-						for (u16 t = 0; t < vert->tris.size(); t++)
-						{
-							if (highest == vert->tris[t])
-							{
-								vert->tris.erase(t);
-								break;
-							}
-						}
-					}
-
-					lru.add(tc[highest].ind[0]);
-					lru.add(tc[highest].ind[1]);
-					highest = lru.add(tc[highest].ind[2]);
-					drawcalls++;
-				}
-
-				buf->getBoundingBox() = mb->getBoundingBox();
-				newmesh->addMeshBuffer(buf);
-				buf->drop();
-			}
-			break;
-		}
-
-		delete [] vc;
-		delete [] tc;
-
-	} // for each meshbuffer
-
-	return newmesh;
+	// const u32 mbcount = mesh->getMeshBufferCount();
+
+	// // TO-DO: support mesh buffers with more than 1 vertex buffer
+	// for (u32 b = 0; b < mbcount; ++b)
+	// 	if (mesh->getMeshBuffer(b)->getVertexBufferCount() > 1)
+	// 		return 0;
+
+	// SMesh *newmesh = new SMesh();
+	// newmesh->BoundingBox = mesh->getBoundingBox();
+
+	// for (u32 b = 0; b < mbcount; ++b)
+	// {
+	// 	const IMeshBuffer *mb = mesh->getMeshBuffer(b);
+
+	// 	if (mb->getIndexBuffer()->getType() != video::EIT_16BIT)
+	// 	{
+	// 		os::Printer::log("Cannot optimize a mesh with 32bit indices", ELL_ERROR);
+	// 		newmesh->drop();
+	// 		return 0;
+	// 	}
+
+	// 	const u32 icount = mb->getIndexBuffer()->getIndexCount();
+	// 	const u32 tcount = icount / 3;
+	// 	const u32 vcount = mb->getVertexBuffer(0)->getVertexCount();
+	// 	const u16 *ind = (u16*)mb->getIndexBuffer()->getIndices();
+
+	// 	vcache *vc = new vcache[vcount];
+	// 	tcache *tc = new tcache[tcount];
+
+	// 	f_lru lru(vc, tc);
+
+	// 	// init
+	// 	for (u16 i = 0; i < vcount; i++)
+	// 	{
+	// 		vc[i].score = 0;
+	// 		vc[i].cachepos = -1;
+	// 		vc[i].NumActiveTris = 0;
+	// 	}
+
+	// 	// First pass: count how many times a vert is used
+	// 	for (u32 i = 0; i < icount; i += 3)
+	// 	{
+	// 		vc[ind[i]].NumActiveTris++;
+	// 		vc[ind[i + 1]].NumActiveTris++;
+	// 		vc[ind[i + 2]].NumActiveTris++;
+
+	// 		const u32 tri_ind = i/3;
+	// 		tc[tri_ind].ind[0] = ind[i];
+	// 		tc[tri_ind].ind[1] = ind[i + 1];
+	// 		tc[tri_ind].ind[2] = ind[i + 2];
+	// 	}
+
+	// 	// Second pass: list of each triangle
+	// 	for (u32 i = 0; i < tcount; i++)
+	// 	{
+	// 		vc[tc[i].ind[0]].tris.push_back(i);
+	// 		vc[tc[i].ind[1]].tris.push_back(i);
+	// 		vc[tc[i].ind[2]].tris.push_back(i);
+
+	// 		tc[i].drawn = false;
+	// 	}
+
+	// 	// Give initial scores
+	// 	for (u16 i = 0; i < vcount; i++)
+	// 	{
+	// 		vc[i].score = FindVertexScore(&vc[i]);
+	// 	}
+	// 	for (u32 i = 0; i < tcount; i++)
+	// 	{
+	// 		tc[i].score =
+	// 				vc[tc[i].ind[0]].score +
+	// 				vc[tc[i].ind[1]].score +
+	// 				vc[tc[i].ind[2]].score;
+	// 	}
+
+	// 	switch(mb->getVertexBuffer(0)->getVertexSize())
+	// 	{
+	// 	case sizeof(video::S3DVertex):
+	// 		{
+	// 			video::S3DVertex *v = (video::S3DVertex *) mb->getVertexBuffer(0)->getVertices();
+
+	// 			CMeshBuffer<video::S3DVertex> *buf = new CMeshBuffer<video::S3DVertex>(mb->getVertexDescriptor(), video::EIT_16BIT);
+	// 			buf->getMaterial() = mb->getMaterial();
+
+	// 			buf->getVertexBuffer(0)->reallocate(vcount);
+	// 			buf->getIndexBuffer()->reallocate(icount);
+
+	// 			core::map<const video::S3DVertex, const u16> sind; // search index for fast operation
+	// 			typedef core::map<const video::S3DVertex, const u16>::Node snode;
+
+	// 			// Main algorithm
+	// 			u32 highest = 0;
+	// 			u32 drawcalls = 0;
+	// 			for (;;)
+	// 			{
+	// 				if (tc[highest].drawn)
+	// 				{
+	// 					bool found = false;
+	// 					float hiscore = 0;
+	// 					for (u32 t = 0; t < tcount; t++)
+	// 					{
+	// 						if (!tc[t].drawn)
+	// 						{
+	// 							if (tc[t].score > hiscore)
+	// 							{
+	// 								highest = t;
+	// 								hiscore = tc[t].score;
+	// 								found = true;
+	// 							}
+	// 						}
+	// 					}
+	// 					if (!found)
+	// 						break;
+	// 				}
+
+	// 				// Output the best triangle
+	// 				u16 newind = buf->getVertexBuffer(0)->getVertexCount();
+
+	// 				snode *s = sind.find(v[tc[highest].ind[0]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[0]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[1]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[1]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[2]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[2]], newind);
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				vc[tc[highest].ind[0]].NumActiveTris--;
+	// 				vc[tc[highest].ind[1]].NumActiveTris--;
+	// 				vc[tc[highest].ind[2]].NumActiveTris--;
+
+	// 				tc[highest].drawn = true;
+
+	// 				for (u16 j = 0; j < 3; j++)
+	// 				{
+	// 					vcache *vert = &vc[tc[highest].ind[j]];
+	// 					for (u16 t = 0; t < vert->tris.size(); t++)
+	// 					{
+	// 						if (highest == vert->tris[t])
+	// 						{
+	// 							vert->tris.erase(t);
+	// 							break;
+	// 						}
+	// 					}
+	// 				}
+
+	// 				lru.add(tc[highest].ind[0]);
+	// 				lru.add(tc[highest].ind[1]);
+	// 				highest = lru.add(tc[highest].ind[2], true);
+	// 				drawcalls++;
+	// 			}
+
+	// 			buf->getBoundingBox() = mb->getBoundingBox();
+	// 			newmesh->addMeshBuffer(buf);
+	// 			buf->drop();
+	// 		}
+	// 		break;
+	// 	case sizeof(video::S3DVertex2TCoords):
+	// 		{
+	// 			video::S3DVertex2TCoords *v = (video::S3DVertex2TCoords *) mb->getVertexBuffer(0)->getVertices();
+
+	// 			CMeshBuffer<video::S3DVertex2TCoords> *buf = new CMeshBuffer<video::S3DVertex2TCoords>(mb->getVertexDescriptor(), video::EIT_16BIT);
+	// 			buf->getMaterial() = mb->getMaterial();
+
+	// 			buf->getVertexBuffer(0)->reallocate(vcount);
+	// 			buf->getIndexBuffer()->reallocate(icount);
+
+	// 			core::map<const video::S3DVertex2TCoords, const u16> sind; // search index for fast operation
+	// 			typedef core::map<const video::S3DVertex2TCoords, const u16>::Node snode;
+
+	// 			// Main algorithm
+	// 			u32 highest = 0;
+	// 			u32 drawcalls = 0;
+	// 			for (;;)
+	// 			{
+	// 				if (tc[highest].drawn)
+	// 				{
+	// 					bool found = false;
+	// 					float hiscore = 0;
+	// 					for (u32 t = 0; t < tcount; t++)
+	// 					{
+	// 						if (!tc[t].drawn)
+	// 						{
+	// 							if (tc[t].score > hiscore)
+	// 							{
+	// 								highest = t;
+	// 								hiscore = tc[t].score;
+	// 								found = true;
+	// 							}
+	// 						}
+	// 					}
+	// 					if (!found)
+	// 						break;
+	// 				}
+
+	// 				// Output the best triangle
+	// 				u16 newind = buf->getVertexBuffer(0)->getVertexCount();
+
+	// 				snode *s = sind.find(v[tc[highest].ind[0]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[0]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[1]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[1]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[2]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[2]], newind);
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				vc[tc[highest].ind[0]].NumActiveTris--;
+	// 				vc[tc[highest].ind[1]].NumActiveTris--;
+	// 				vc[tc[highest].ind[2]].NumActiveTris--;
+
+	// 				tc[highest].drawn = true;
+
+	// 				for (u16 j = 0; j < 3; j++)
+	// 				{
+	// 					vcache *vert = &vc[tc[highest].ind[j]];
+	// 					for (u16 t = 0; t < vert->tris.size(); t++)
+	// 					{
+	// 						if (highest == vert->tris[t])
+	// 						{
+	// 							vert->tris.erase(t);
+	// 							break;
+	// 						}
+	// 					}
+	// 				}
+
+	// 				lru.add(tc[highest].ind[0]);
+	// 				lru.add(tc[highest].ind[1]);
+	// 				highest = lru.add(tc[highest].ind[2]);
+	// 				drawcalls++;
+	// 			}
+
+	// 			buf->getBoundingBox() = mb->getBoundingBox();
+	// 			newmesh->addMeshBuffer(buf);
+	// 			buf->drop();
+
+	// 		}
+	// 		break;
+	// 	case sizeof(video::S3DVertexTangents):
+	// 		{
+	// 			video::S3DVertexTangents *v = (video::S3DVertexTangents *) mb->getVertexBuffer(0)->getVertices();
+
+	// 			CMeshBuffer<video::S3DVertexTangents> *buf = new CMeshBuffer<video::S3DVertexTangents>(mb->getVertexDescriptor(), video::EIT_16BIT);
+	// 			buf->getMaterial() = mb->getMaterial();
+
+	// 			buf->getVertexBuffer(0)->reallocate(vcount);
+	// 			buf->getIndexBuffer()->reallocate(icount);
+
+	// 			core::map<const video::S3DVertexTangents, const u16> sind; // search index for fast operation
+	// 			typedef core::map<const video::S3DVertexTangents, const u16>::Node snode;
+
+	// 			// Main algorithm
+	// 			u32 highest = 0;
+	// 			u32 drawcalls = 0;
+	// 			for (;;)
+	// 			{
+	// 				if (tc[highest].drawn)
+	// 				{
+	// 					bool found = false;
+	// 					float hiscore = 0;
+	// 					for (u32 t = 0; t < tcount; t++)
+	// 					{
+	// 						if (!tc[t].drawn)
+	// 						{
+	// 							if (tc[t].score > hiscore)
+	// 							{
+	// 								highest = t;
+	// 								hiscore = tc[t].score;
+	// 								found = true;
+	// 							}
+	// 						}
+	// 					}
+	// 					if (!found)
+	// 						break;
+	// 				}
+
+	// 				// Output the best triangle
+	// 				u16 newind = buf->getVertexBuffer(0)->getVertexCount();
+
+	// 				snode *s = sind.find(v[tc[highest].ind[0]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[0]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[0]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[1]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[1]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[1]], newind);
+	// 					newind++;
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				s = sind.find(v[tc[highest].ind[2]]);
+
+	// 				if (!s)
+	// 				{
+	// 					buf->getVertexBuffer(0)->addVertex(&v[tc[highest].ind[2]]);
+	// 					buf->getIndexBuffer()->addIndex(newind);
+	// 					sind.insert(v[tc[highest].ind[2]], newind);
+	// 				}
+	// 				else
+	// 				{
+	// 					buf->getIndexBuffer()->addIndex(s->getValue());
+	// 				}
+
+	// 				vc[tc[highest].ind[0]].NumActiveTris--;
+	// 				vc[tc[highest].ind[1]].NumActiveTris--;
+	// 				vc[tc[highest].ind[2]].NumActiveTris--;
+
+	// 				tc[highest].drawn = true;
+
+	// 				for (u16 j = 0; j < 3; j++)
+	// 				{
+	// 					vcache *vert = &vc[tc[highest].ind[j]];
+	// 					for (u16 t = 0; t < vert->tris.size(); t++)
+	// 					{
+	// 						if (highest == vert->tris[t])
+	// 						{
+	// 							vert->tris.erase(t);
+	// 							break;
+	// 						}
+	// 					}
+	// 				}
+
+	// 				lru.add(tc[highest].ind[0]);
+	// 				lru.add(tc[highest].ind[1]);
+	// 				highest = lru.add(tc[highest].ind[2]);
+	// 				drawcalls++;
+	// 			}
+
+	// 			buf->getBoundingBox() = mb->getBoundingBox();
+	// 			newmesh->addMeshBuffer(buf);
+	// 			buf->drop();
+	// 		}
+	// 		break;
+	// 	}
+
+	// 	delete [] vc;
+	// 	delete [] tc;
+
+	// } // for each meshbuffer
+
+	// return newmesh;
+	return 0;
 }
 
 } // end namespace scene

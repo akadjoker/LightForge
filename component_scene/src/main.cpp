@@ -1,3 +1,11 @@
+
+#include <SDL2/SDL.h>
+//#include <SDL2/SDL_opengl.h>
+
+#include "glad.h" 
+
+// #define GL_GLEXT_PROTOTYPES
+// #include <SDL2/SDL_opengl_glext.h>
 #include <irrlicht.h>
 #include "CLinesBatch.h"
 #include <iostream>
@@ -264,6 +272,20 @@ private:
  
 };
 
+
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\n\0";
+
 int main()
 {
     // Setup do device
@@ -342,20 +364,6 @@ int main()
    //  camera->addComponent<FpsComponent>();
     camera->addComponent<FreeCameraComponent>();
 
-    auto *cube = smgr->addCube(2.0f, nullptr, 20, core::vector3df(0, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
-    if (cube)
-    {
-        cube->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
-        cube->getComponent<scene::MeshComponent>()->setColor(255,0,0);
-
-    }
-
-    auto *sphere = smgr->addSphere(1.5f, 16, cube, -1, core::vector3df(5, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
-    if (sphere)
-    {
-        sphere->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
-        sphere->getComponent<scene::MeshComponent>()->setColor(255,0,255);
-    }
 
     camera->setFOV(core::PI / 3.0f);
     camera->setAspectRatio((f32)params.WindowSize.Width / (f32)params.WindowSize.Height);
@@ -367,19 +375,69 @@ int main()
     f32 time=0;
 
     s32 LastAnimationTime = device->getTimer()->getRealTime();
+ 
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) 
+    {
+        fprintf(stderr, "Falha ao carregar GL com GLAD\n");
+        return 1;
+    }
 
-    CLineBatchRenderer lineBatch(driver,1000);
-    lineBatch.setShader(shaderLinesMaterial);
 
-    
-    u32 bounce=0;
+     float vertices[] = {
+         0.5f,  0.5f, 0.0f,  // top right
+         0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left 
+    };
+    unsigned short indices[] = {  // note that we start from 0!
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
+    };
 
-    MeshComponent *cMesh =    cube->getComponent<MeshComponent>();
-    scene::IMesh* mesh = cMesh->getMesh();
-    scene::IMeshBuffer* mb = mesh->getMeshBuffer(0);
-    auto* desc = mb->getVertexDescriptor();
-    auto* vb   = mb->getVertexBuffer(0);
-    auto* ib   = mb->getIndexBuffer();
+   video::IHardwareIndexBuffer *ib  =    driver->createIndexBuffer(video::EIT_16BIT,  6 ,video::HBU_STATIC);
+   video::IHardwareVertexBuffer *vb =    driver->createVertexBuffer(3 * sizeof(float),4,video::HBU_STATIC);
+
+vb->writeData(/*offsetBytes*/0, /*sizeBytes*/ sizeof(vertices), vertices);
+ib->writeData(/*offsetBytes*/0, /*sizeBytes*/ sizeof(indices),  indices);
+
+
+
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    // fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    // check for shader compile errors
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    // link shaders
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    // check for linking errors
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     
 
@@ -400,53 +458,37 @@ int main()
         smgr->drawAll();
 
 
-        driver->setRenderStates3DMode();  
-        //driver->drawElements(desc, vb, ib, scene::EPT_TRIANGLES, ib->getIndexCount());
-        driver->drawArrays(desc, vb, scene::EPT_TRIANGLES, vb->getVertexCount());
-
-       
-        
-        // TransformComponent* transform = cube->getComponent<TransformComponent>();
-        
-        
-         f32 angle = time * 8.0f* core::DEGTORAD;
-         core::vector3df pos =   cube->getPosition();
-         core::vector3df rot = cube->getRotation();
+        glUseProgram(shaderProgram);
 
 
-        rot.Y = (angle *25.0f) * core::RADTODEG;  
-        rot.Z = (-angle *25.0f) * core::RADTODEG;  
- 
-        
-        pos.X = sin(angle)*5.5;
-        pos.Z = cos(angle)*5.5;
-
-        cube->setPosition(pos);
-        cube->setRotation(rot);
-
-
-
-        lineBatch.addGrid(vector3df(0,-1,0), 20.0f, 10, SColor(255,100,100,100));
-        lineBatch.addAxes(vector3df(0,0,0), 1.0f);
-
-        lineBatch.addWireBox(sphere->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
-        lineBatch.addWireBox(cube->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
-
-    
-        
-        lineBatch.addWireSphere(vector3df(0, 0, 0), 1.6f, 16, 8,SColor(255,255,255,0));
- 
-
-        lineBatch.addCylinder(vector3df(2, 0, 0),1.0f,5,SColor(255,255,255,0),18);
-
-        lineBatch.addWireBox(camera->getViewFrustum()->getBoundingBox(), SColor(255, 255, 0, 128)); 
+   vb->bind();
+   ib->bind();
    
+ glEnableVertexAttribArray(0);
+glVertexAttribPointer(
+    /*location*/ 0,
+    /*size*/     3,
+    /*type*/     GL_FLOAT,
+    /*norm*/     GL_FALSE,
+    /*stride*/   3 * sizeof(float),
+    /*offset*/   (void*)0
+);
 
-       
+// 6) Draw
+glDrawElements(GL_TRIANGLES, /*count*/ 6, /*type*/ GL_UNSIGNED_SHORT, /*offset*/ (void*)0);
+
+// 7) Unbind/cleanup mínimos
+glDisableVertexAttribArray(0);
+   
+   vb->unbind();
+   ib->unbind();
 
 
-        lineBatch.render();
+        glUseProgram(0);
+        
 
+  
+ 
         driver->endScene();
 
         // FPS counter
@@ -467,7 +509,12 @@ int main()
         }
     }
 
+    
+
     std::cout << "Shutting down...\n";
+
+   ib->drop();
+   vb->drop();
 
     device->drop();
     return 0;

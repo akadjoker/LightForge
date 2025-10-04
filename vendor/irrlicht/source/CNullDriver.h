@@ -348,21 +348,7 @@ namespace video
 		//! Draws the normals of a mesh buffer
 		virtual void drawMeshBufferNormals(const scene::IMeshBuffer* mb, f32 length=10.f,
 			SColor color=0xffffffff) _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* addVertexDescriptor(const core::stringc& pName) _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* getVertexDescriptor(u32 id) const _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* getVertexDescriptor(const core::stringc& pName) const _IRR_OVERRIDE_;
-
-		virtual u32 getVertexDescriptorCount() const _IRR_OVERRIDE_;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IIndexBuffer* indexBuffer) _IRR_OVERRIDE_;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IVertexBuffer* vertexBuffer) _IRR_OVERRIDE_;
-
-		virtual bool isHardwareBufferRecommend(const scene::IMeshBuffer* mb);
-
+ 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
 		virtual void addOcclusionQuery(scene::ISceneNode* node,
@@ -594,25 +580,16 @@ namespace video
 		}
 
 		virtual void setTextureStates(ITexture* tex ,u32 stage = 0)  _IRR_OVERRIDE_;
-
-		virtual void drawElements(
-				video::IVertexDescriptor *descriptor,
-				scene::IVertexBuffer *vb,
-				scene::IIndexBuffer *ib,
-				scene::E_PRIMITIVE_TYPE primitiveType,
-				u32 indexCount = 0)_IRR_OVERRIDE_;
-
-			virtual void drawArrays(
-				video::IVertexDescriptor *descriptor,
-				scene::IVertexBuffer *vb,
-				scene::E_PRIMITIVE_TYPE primitiveType,
-				u32 vertexCount = 0)_IRR_OVERRIDE_;
+ 
 
  
 			virtual void setRenderStates3DMode() _IRR_OVERRIDE_;
 			virtual void setTextureStates(u32 stage = 0) _IRR_OVERRIDE_;
 
 			virtual void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel) _IRR_OVERRIDE_;
+
+			virtual IHardwareIndexBuffer* 			createIndexBuffer(video::E_INDEX_TYPE type,u32 numIndexes,video::E_USAGE usage) _IRR_OVERRIDE_;
+			virtual IHardwareVertexBuffer*	createVertexBuffer(u32 vertexSize,u32 numVertices,video::E_USAGE usage) _IRR_OVERRIDE_;
 
  
 
@@ -805,7 +782,7 @@ namespace video
 		bool RangeFog;
 		bool AllowZWriteOnTransparent;
 
-		irr::core::array<IVertexDescriptor*> VertexDescriptor;
+	 
 
 		bool FeatureEnabled[video::EVDF_COUNT];
 

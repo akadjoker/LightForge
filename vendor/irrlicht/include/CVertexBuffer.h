@@ -16,16 +16,16 @@ namespace scene
 	class CVertexBuffer : public IVertexBuffer
 	{
 	public:
-		CVertexBuffer() : HardwareMappingHint(EHM_NEVER), ChangedID(1)
+		CVertexBuffer()  
 		{
 #ifdef _DEBUG
 			setDebugName("CVertexBuffer");
 #endif
 		}
 
-		CVertexBuffer(const CVertexBuffer& vertexBuffer) : HardwareMappingHint(EHM_NEVER), ChangedID(1)
+		CVertexBuffer(const CVertexBuffer& vertexBuffer): ChangedID(1)
 		{
-			HardwareMappingHint = vertexBuffer.HardwareMappingHint;
+			 
 
 			const u32 vbCount = vertexBuffer.Vertices.size();
 
@@ -87,18 +87,7 @@ namespace scene
 			}
 		}
 
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint() const
-		{
-			return HardwareMappingHint;
-		}
-
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING hardwareMappingHint)
-		{
-			if (HardwareMappingHint != hardwareMappingHint)
-				setDirty();
-
-			HardwareMappingHint = hardwareMappingHint;
-		}
+	 
 
 		virtual void addVertex(const T& vertex)
 		{
@@ -147,8 +136,7 @@ namespace scene
 
 		virtual void setDirty()
 		{
-			if (HardwareBuffer)
-				HardwareBuffer->requestUpdate();
+			 
 
 			++ChangedID;
 		}
@@ -159,8 +147,7 @@ namespace scene
 		}
 
 	protected:
-		E_HARDWARE_MAPPING HardwareMappingHint;
-
+		 
 		u32 ChangedID;
 
 		core::array<T> Vertices;

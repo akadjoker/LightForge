@@ -24,14 +24,13 @@ namespace scene
 	class IIndexBuffer : public virtual IReferenceCounted
 	{
 	public:
-		IIndexBuffer() : HardwareBuffer(0)
+		IIndexBuffer()  
 		{
 		}
 
 		virtual ~IIndexBuffer()
 		{
-			if (HardwareBuffer)
-				HardwareBuffer->drop();
+			 
 		}
 
 		virtual void clear() = 0;
@@ -49,10 +48,7 @@ namespace scene
 		virtual video::E_INDEX_TYPE getType() const = 0;
 
 		virtual void setType(video::E_INDEX_TYPE type) = 0;
-
-		virtual E_HARDWARE_MAPPING getHardwareMappingHint() const = 0;
-
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING hardwareMappingHint) = 0;
+ 
 
 		virtual void addIndex(const u32& index) = 0;
 
@@ -70,25 +66,10 @@ namespace scene
 
 		virtual u32 getChangedID() const = 0;
 
-		video::IHardwareBuffer* getHardwareBuffer() const
-		{
-			return HardwareBuffer;
-		}
-
-		// externalMemoryHandler parameter is used only by hardware buffers.
-		void setHardwareBuffer(video::IHardwareBuffer* hardwareBuffer, bool externalMemoryHandler = false)
-		{
-			if (!externalMemoryHandler && HardwareBuffer)
-				HardwareBuffer->drop();
-
-			HardwareBuffer = hardwareBuffer;
-
-			if (!externalMemoryHandler && HardwareBuffer)
-				HardwareBuffer->grab();
-		}
+	 
 
 	protected:
-		video::IHardwareBuffer* HardwareBuffer;
+	 
 	};
 }
 }

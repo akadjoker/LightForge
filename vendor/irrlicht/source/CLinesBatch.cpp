@@ -48,7 +48,7 @@ namespace irr
             if (!Driver)
                 return;
 
-            MeshBuffer = new irr::scene::CMeshBuffer<video::S3DLinesVertex>(Driver->getVertexDescriptor(7));
+            MeshBuffer =nullptr;// new irr::scene::CMeshBuffer<video::S3DLinesVertex>(Driver->getVertexDescriptor(7));
 
             IndexBuffer = MeshBuffer->getIndexBuffer();
             VertexBuffer = MeshBuffer->getVertexBuffer(0);
