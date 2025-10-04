@@ -17,7 +17,7 @@
 #include "IGeometryCreator.h"
 #include "IShaderManager.h"
 #include "IMeshManipulator.h"
-#include "CMeshBuffer.h"
+
 
 namespace irr
 {
@@ -34,8 +34,7 @@ namespace irr
 
 	namespace gui
 	{
-		class IGUIFont;
-		class IGUIEnvironment;
+		 
 		class ICursorControl;
 	} // end namespace gui
 
@@ -137,11 +136,7 @@ namespace irr
 			This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 			virtual video::IVideoDriver *getVideoDriver() = 0;
 
-			//! Get the active GUIEnvironment
-			/** \return Pointer to the GUIEnvironment
-			This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-			virtual gui::IGUIEnvironment *getGUIEnvironment() = 0;
-
+		 
 			//! Get the active FileSystem
 			/** \return Pointer to the FileSystem
 			This pointer should not be dropped. See IReferenceCounted::drop() for more information. */

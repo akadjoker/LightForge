@@ -13,8 +13,13 @@ namespace irr
 {
 namespace scene
 {
-	class IMeshBuffer;
 
+	class IMeshBuffer
+	{
+		public:
+
+	};
+ 
 	//! Class which holds the geometry of an object.
 	/** An IMesh is nothing more than a collection of some mesh buffers
 	(IMeshBuffer). SMesh is a simple implementation of an IMesh.
@@ -24,22 +29,8 @@ namespace scene
 	{
 	public:
 
-		//! Get the amount of mesh buffers.
-		/** \return Amount of mesh buffers (IMeshBuffer) in this mesh. */
-		virtual u32 getMeshBufferCount() const = 0;
-
-		//! Get pointer to a mesh buffer.
-		/** \param nr: Zero based index of the mesh buffer. The maximum value is
-		getMeshBufferCount() - 1;
-		\return Pointer to the mesh buffer or 0 if there is no such
-		mesh buffer. */
-		virtual IMeshBuffer* getMeshBuffer(u32 nr) const = 0;
-
-		//! Get pointer to a mesh buffer which fits a material
-		/** \param material: material to search for
-		\return Pointer to the mesh buffer or 0 if there is no such
-		mesh buffer. */
-		virtual IMeshBuffer* getMeshBuffer( const video::SMaterial &material) const = 0;
+		 
+ 
 
 		//! Get an axis aligned bounding box of the mesh.
 		/** \return Bounding box of this mesh. */
@@ -53,19 +44,7 @@ namespace scene
 		/** \param flag: Flag to set in all materials.
 		\param newvalue: New value to set in all materials. */
 		virtual void setMaterialFlag(video::E_MATERIAL_FLAG flag, bool newvalue) = 0;
-
-		//! Set the hardware mapping hint
-		/** This methods allows to define optimization hints for the
-		hardware. This enables, e.g., the use of hardware buffers on
-		pltforms that support this feature. This can lead to noticeable
-		performance gains. */
-		virtual void setHardwareMappingHint(E_HARDWARE_MAPPING newMappingHint, E_BUFFER_TYPE buffer=EBT_VERTEX_AND_INDEX) = 0;
-
-		//! Flag the meshbuffer as changed, reloads hardware buffers
-		/** This method has to be called every time the vertices or
-		indices have changed. Otherwise, changes won't be updated
-		on the GPU in the next render cycle. */
-		virtual void setDirty(E_BUFFER_TYPE buffer=EBT_VERTEX_AND_INDEX) = 0;
+ 
 	};
 
 } // end namespace scene

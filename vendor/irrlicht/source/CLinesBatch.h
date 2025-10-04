@@ -31,9 +31,9 @@ namespace irr
             SMaterial Material;
 
             // Buffers para otimização
-            scene::IVertexBuffer *VertexBuffer;
-            scene::IIndexBuffer *IndexBuffer;
-            scene::IMeshBuffer *MeshBuffer;
+            // scene::IVertexBuffer *VertexBuffer;
+            // scene::IIndexBuffer *IndexBuffer;
+            // scene::IMeshBuffer *MeshBuffer;
 
         public:
             CLineBatchRenderer(IVideoDriver *driver, u32 maxLines = 10000);

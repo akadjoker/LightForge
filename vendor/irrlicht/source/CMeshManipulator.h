@@ -7,6 +7,10 @@
 
 #include "IMeshManipulator.h"
 
+#include "IMesh.h"
+
+
+
 namespace irr
 {
 namespace scene
@@ -35,10 +39,7 @@ public:
 
 	virtual void makePlanarTextureMapping(IMeshBuffer* meshBuffer, f32 resolutionS, f32 resolutionT, u8 axis, const core::vector3df& offset) const _IRR_OVERRIDE_;
 
-	virtual bool copyIndices(IIndexBuffer* srcBuffer, IIndexBuffer* dstBuffer) const _IRR_OVERRIDE_;
-
-	virtual bool copyVertices(IVertexBuffer* srcBuffer, u32 srcDescriptionBufferID, video::IVertexDescriptor* srcDescriptor,
-		IVertexBuffer* dstBuffer, u32 dstDescriptionBufferID, video::IVertexDescriptor* dstDescriptor, bool copyCustomAttribute) const _IRR_OVERRIDE_;
+ 
 
 	virtual bool createTangents(IMeshBuffer* srcBuffer, IMeshBuffer* dstBuffer, bool copyCustomAttribute,
 		bool recalculateNormals, bool smooth, bool angleWeighted) _IRR_OVERRIDE_;

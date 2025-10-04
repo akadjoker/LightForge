@@ -39,8 +39,7 @@ namespace irr
 		public:
 			//! constructor
 			CSceneManager(video::IVideoDriver *driver, io::IFileSystem *fs,
-						  gui::ICursorControl *cursorControl, IMeshCache *cache = 0,
-						  gui::IGUIEnvironment *guiEnvironment = 0);
+						  gui::ICursorControl *cursorControl, IMeshCache *cache = 0);
 
 			//! destructor
 			virtual ~CSceneManager();
@@ -48,8 +47,7 @@ namespace irr
 			//! returns the video driver
 			virtual video::IVideoDriver *getVideoDriver();
 
-			//! return the gui environment
-			virtual gui::IGUIEnvironment *getGUIEnvironment();
+ 
 
 			virtual gui::ICursorControl *getCursorControl();
 
@@ -284,9 +282,7 @@ namespace irr
 			//! file system
 			io::IFileSystem *FileSystem;
 
-			//! GUI Enviroment ( Debug Purpose )
-			gui::IGUIEnvironment *GUIEnvironment;
-
+ 
 			//! cursor control
 			gui::ICursorControl *CursorControl;
 

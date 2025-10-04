@@ -47,20 +47,7 @@ namespace irr
 			virtual bool OnEvent(const SEvent &event) { return false; };
 		};
 
-		// Transform Component
-		class TransformComponent : public IComponent
-		{
-		public:
-			core::vector3df position{0, 0, 0};
-			core::vector3df rotation{0, 0, 0};
-			core::vector3df scale{1, 1, 1};
-
-			virtual bool OnEvent(const SEvent &event) override { return false; };
-
-			core::matrix4 getLocalMatrix() const;
-	 		core::matrix4 getWorldMatrix() const;
-	 
-		};
+		 
 
 		class MeshComponent : public IComponent
 		{

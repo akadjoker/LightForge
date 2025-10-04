@@ -342,20 +342,20 @@ int main()
    //  camera->addComponent<FpsComponent>();
     camera->addComponent<FreeCameraComponent>();
 
-    auto *cube = smgr->addCube(2.0f, nullptr, 20, core::vector3df(0, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
-    if (cube)
-    {
-        cube->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
-        cube->getComponent<scene::MeshComponent>()->setColor(255,0,0);
+    // auto *cube = smgr->addCube(2.0f, nullptr, 20, core::vector3df(0, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
+    // if (cube)
+    // {
+    //     cube->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
+    //     cube->getComponent<scene::MeshComponent>()->setColor(255,0,0);
 
-    }
+    // }
 
-    auto *sphere = smgr->addSphere(1.5f, 16, cube, -1, core::vector3df(5, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
-    if (sphere)
-    {
-        sphere->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
-        sphere->getComponent<scene::MeshComponent>()->setColor(255,0,255);
-    }
+    // auto *sphere = smgr->addSphere(1.5f, 16, cube, -1, core::vector3df(5, 0, 0), core::vector3df(0, 0, 0), core::vector3df(1.0f, 1.0f, 1.0f));
+    // if (sphere)
+    // {
+    //     sphere->getComponent<scene::MeshComponent>()->setShaderMaterial(shaderMaterial);
+    //     sphere->getComponent<scene::MeshComponent>()->setColor(255,0,255);
+    // }
 
     camera->setFOV(core::PI / 3.0f);
     camera->setAspectRatio((f32)params.WindowSize.Width / (f32)params.WindowSize.Height);
@@ -368,8 +368,8 @@ int main()
 
     s32 LastAnimationTime = device->getTimer()->getRealTime();
 
-    CLineBatchRenderer lineBatch(driver,80000);
-    lineBatch.setShader(shaderLinesMaterial);
+   // CLineBatchRenderer lineBatch(driver,80000);
+//    lineBatch.setShader(shaderLinesMaterial);
 
     
     u32 bounce=0;
@@ -389,39 +389,39 @@ int main()
         smgr->drawAll();
 
         
-        TransformComponent* transform = cube->getComponent<TransformComponent>();
+        // TransformComponent* transform = cube->getComponent<TransformComponent>();
         
         
-        f32 angle = time * 8.0f* core::DEGTORAD;
-        transform->rotation.Y = (angle *25.0f) * core::RADTODEG;  
-        transform->rotation.Z = (-angle *25.0f) * core::RADTODEG;  
+        // f32 angle = time * 8.0f* core::DEGTORAD;
+        // transform->rotation.Y = (angle *25.0f) * core::RADTODEG;  
+        // transform->rotation.Z = (-angle *25.0f) * core::RADTODEG;  
  
         
-        transform->position.X = sin(angle)*5.5;
-        transform->position.Z = cos(angle)*5.5;
+        // transform->position.X = sin(angle)*5.5;
+        // transform->position.Z = cos(angle)*5.5;
 
 
 
-        lineBatch.addGrid(vector3df(0,-1,0), 20.0f, 10, SColor(255,100,100,100));
-        lineBatch.addAxes(vector3df(0,0,0), 1.0f);
+        // lineBatch.addGrid(vector3df(0,-1,0), 20.0f, 10, SColor(255,100,100,100));
+        // lineBatch.addAxes(vector3df(0,0,0), 1.0f);
 
-        lineBatch.addWireBox(sphere->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
-        lineBatch.addWireBox(cube->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
+        // // lineBatch.addWireBox(sphere->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
+        // // lineBatch.addWireBox(cube->getTransformedBoundingBox(), SColor(255, 255, 40, 128)); 
 
     
         
-        lineBatch.addWireSphere(vector3df(0, 0, 0), 1.6f, 16, 8,SColor(255,255,255,0));
+        // lineBatch.addWireSphere(vector3df(0, 0, 0), 1.6f, 16, 8,SColor(255,255,255,0));
  
 
-        lineBatch.addCylinder(vector3df(2, 0, 0),1.0f,5,SColor(255,255,255,0),18);
+        // lineBatch.addCylinder(vector3df(2, 0, 0),1.0f,5,SColor(255,255,255,0),18);
 
-        lineBatch.addWireBox(camera->getViewFrustum()->getBoundingBox(), SColor(255, 255, 0, 128)); 
+        // lineBatch.addWireBox(camera->getViewFrustum()->getBoundingBox(), SColor(255, 255, 0, 128)); 
    
 
        
 
 
-        lineBatch.render();
+        //lineBatch.render();
 
         driver->endScene();
 

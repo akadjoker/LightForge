@@ -14,15 +14,13 @@
 #include "dimension2d.h"
 #include "position2d.h"
 #include "SMaterial.h"
-#include "IMeshBuffer.h"
 #include "triangle3d.h"
 #include "EDriverTypes.h"
 #include "EDriverFeatures.h"
 #include "SExposedVideoData.h"
+#include "IMesh.h"
+#include "IMeshManipulator.h"
 
-
-
-#include "IHardwareBuffer.h"
 #include "IRWBuffer.h"
 
 namespace irr
@@ -36,18 +34,12 @@ namespace io
 } // end namespace io
 namespace scene
 {
-	class IMeshBuffer;
-	class IMesh;
-	class IMeshManipulator;
+	
 	class ISceneNode;
 } // end namespace scene
 
 namespace video
 {
-	class IVertexDescriptor;
-	struct S3DVertex;
-	struct S3DVertex2TCoords;
-	struct S3DVertexTangents;
 	struct SLight;
 	class IImageLoader;
 	class IImageWriter;
@@ -619,14 +611,10 @@ namespace video
 		0 or another texture first. */
 		virtual void removeAllTextures() =0;
 
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IIndexBuffer* indexBuffer) = 0;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IVertexBuffer* vertexBuffer) = 0;
-
+ 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
-		virtual void addOcclusionQuery(scene::ISceneNode* node,
-				const scene::IMesh* mesh=0) =0;
+		virtual void addOcclusionQuery(scene::ISceneNode* node,const scene::IMesh* mesh=0) =0;
 
 		//! Remove occlusion query.
 		virtual void removeOcclusionQuery(scene::ISceneNode* node) =0;
@@ -861,16 +849,6 @@ namespace video
 		virtual void draw3DBox(const core::aabbox3d<f32>& box,
 			SColor color = SColor(255,255,255,255)) =0;
 
-		//! Draws a mesh buffer
-		/** \param mb Buffer to draw */
-		virtual void drawMeshBuffer(const scene::IMeshBuffer* mb) =0;
-
-		//! Draws normals of a mesh buffer
-		/** \param mb Buffer to draw the normals of
-		\param length length scale factor of the normals
-		\param color Color the normals are rendered with
-		*/
-		virtual void drawMeshBufferNormals(const scene::IMeshBuffer* mb, f32 length=10.f, SColor color=0xffffffff) =0;
 
 		//! Sets the fog mode.
 		/** These are global values attached to each 3d object rendered,
@@ -1278,14 +1256,7 @@ namespace video
 		virtual void convertColor(const void* sP, ECOLOR_FORMAT sF, s32 sN,
 				void* dP, ECOLOR_FORMAT dF) const =0;
 
-		virtual IVertexDescriptor* addVertexDescriptor(const core::stringc& pName) = 0;
-
-		virtual IVertexDescriptor* getVertexDescriptor(u32 id) const = 0;
-
-		virtual IVertexDescriptor* getVertexDescriptor(const core::stringc& pName) const = 0;
-
-		virtual u32 getVertexDescriptorCount() const = 0;
-        
+		 
         //! set default frame
         virtual void setDefaultFrameBuffer(int framebuffer) = 0;
         

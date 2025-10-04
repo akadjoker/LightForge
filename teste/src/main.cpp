@@ -279,53 +279,53 @@ public:
     void addCube(const core::vector3df &pos, const core::vector3df &size,
                  video::SColor color = video::SColor(255, 255, 255, 255))
     {
-        if (auto *gc = smgr->getGeometryCreator())
-        {
-            SceneObject obj;
-            obj.mesh = gc->createCubeMesh(size);
+        // if (auto *gc = smgr->getGeometryCreator())
+        // {
+        //     SceneObject obj;
+        //     obj.mesh = gc->createCubeMesh(size);
 
-            obj.position = pos;
+        //     obj.position = pos;
 
-            if (obj.mesh)
-            {
-                // Recalcular normais se disponível
-                if (auto *mm = smgr->getMeshManipulator())
-                {
-                    mm->recalculateNormals(obj.mesh, true);
+        //     if (obj.mesh)
+        //     {
+        //         // Recalcular normais se disponível
+        //         if (auto *mm = smgr->getMeshManipulator())
+        //         {
+        //             mm->recalculateNormals(obj.mesh, true);
 
-                    mm->setVertexColors(obj.mesh, color);
-                    obj.mesh->setDirty();
-                }
+        //             mm->setVertexColors(obj.mesh, color);
+        //             obj.mesh->setDirty();
+        //         }
 
-                objects.push_back(obj);
-                std::cout << "Added cube at (" << pos.X << "," << pos.Y << "," << pos.Z << ")\n";
-            }
-        }
+        //         objects.push_back(obj);
+        //         std::cout << "Added cube at (" << pos.X << "," << pos.Y << "," << pos.Z << ")\n";
+        //     }
+        // }
     }
 
     // Adicionar esfera
     void addSphere(const core::vector3df &pos, f32 radius, u32 polyCount = 16,
                    video::SColor color = video::SColor(255, 255, 255, 255))
     {
-        if (auto *gc = smgr->getGeometryCreator())
-        {
-            SceneObject obj;
-            obj.mesh = gc->createSphereMesh(radius, polyCount, polyCount);
-            obj.position = pos;
+        // if (auto *gc = smgr->getGeometryCreator())
+        // {
+        //     SceneObject obj;
+        //     obj.mesh = gc->createSphereMesh(radius, polyCount, polyCount);
+        //     obj.position = pos;
 
-            if (obj.mesh)
-            {
-                if (auto *mm = smgr->getMeshManipulator())
-                {
-                    mm->recalculateNormals(obj.mesh, true);
-                    mm->setVertexColors(obj.mesh, color);
-                    obj.mesh->setDirty();
-                }
+        //     if (obj.mesh)
+        //     {
+        //         if (auto *mm = smgr->getMeshManipulator())
+        //         {
+        //             mm->recalculateNormals(obj.mesh, true);
+        //             mm->setVertexColors(obj.mesh, color);
+        //             obj.mesh->setDirty();
+        //         }
 
-                objects.push_back(obj);
-                std::cout << "Added sphere at (" << pos.X << "," << pos.Y << "," << pos.Z << ")\n";
-            }
-        }
+        //         objects.push_back(obj);
+        //         std::cout << "Added sphere at (" << pos.X << "," << pos.Y << "," << pos.Z << ")\n";
+        //     }
+        // }
     }
 
     // Renderizar todos os objetos
@@ -358,17 +358,17 @@ public:
             driver->setTransform(video::ETS_WORLD, worldMatrix);
 
             // Renderizar cada mesh buffer
-            const u32 cnt = obj.mesh->getMeshBufferCount();
-            for (u32 j = 0; j < cnt; ++j)
-            {
-                scene::IMeshBuffer *mb = obj.mesh->getMeshBuffer(j);
-                video::SMaterial mat = mb->getMaterial();
+            // const u32 cnt = obj.mesh->getMeshBufferCount();
+            // for (u32 j = 0; j < cnt; ++j)
+            // {
+            //     scene::IMeshBuffer *mb = obj.mesh->getMeshBuffer(j);
+            //     video::SMaterial mat = mb->getMaterial();
 
-                mat.MaterialType = (E_MATERIAL_TYPE)shaderMaterial;
+            //     mat.MaterialType = (E_MATERIAL_TYPE)shaderMaterial;
 
-                driver->setMaterial(mat);
-                driver->drawMeshBuffer(mb);
-            }
+            //     driver->setMaterial(mat);
+            //     driver->drawMeshBuffer(mb);
+            // }
         }
     }
 

@@ -31,69 +31,7 @@ namespace video
     class COpenGLCallBridge;
 	class COpenGLTexture;
 
-	class COpenGLVertexAttribute : public IVertexAttribute
-	{
-	public:
-		COpenGLVertexAttribute(const core::stringc& name, u32 elementCount, E_VERTEX_ATTRIBUTE_SEMANTIC semantic, E_VERTEX_ATTRIBUTE_TYPE type, u32 offset, u32 bufferID, u32 layerCount);
-
-		virtual void setOffset(u32 offset);
-
-		// Add location layer.
-		void addLocationLayer();
-
-		// Get attribute location in a shader program.
-		s32 getLocation(u32 materialType) const;
-
-		// Set attribute location in a shader program.
-		void setLocation(u32 location, u32 materialType);
-
-		// -1 -> location entry doesn't exist, eg. material type or id is wrong; 0 - location isn't cached, so use glGetAttribLocation call; 1 - location is cached.
-		s32 getLocationStatus(u32 materialType) const;
-
-	protected:
-		core::array<bool> Cache;
-		core::array<s32> Location;
-	};
-
-	class COpenGLVertexDescriptor : public IVertexDescriptor
-	{
-	public:
-		COpenGLVertexDescriptor(const core::stringc& name, u32 id, u32 layerCount);
-
-		virtual void setID(u32 id);
-
-		virtual IVertexAttribute* addAttribute(const core::stringc& name, u32 elementCount, E_VERTEX_ATTRIBUTE_SEMANTIC semantic, E_VERTEX_ATTRIBUTE_TYPE type, u32 bufferID) _IRR_OVERRIDE_;
-
-		virtual void clearAttribute() _IRR_OVERRIDE_;
-
-		void addLocationLayer();
-
-	protected:
-		core::array<COpenGLVertexAttribute> Attribute;
-
-		u32 LayerCount;
-	};
-
-	class COpenGLHardwareBuffer : public IHardwareBuffer
-	{
-	public:
-		COpenGLHardwareBuffer(scene::IIndexBuffer* indexBuffer, COpenGLDriver* driver);
-		COpenGLHardwareBuffer(scene::IVertexBuffer* vertexBuffer, COpenGLDriver* driver);
-		~COpenGLHardwareBuffer();
-
-		bool update(const scene::E_HARDWARE_MAPPING mapping, const u32 size, const void* data);
-
-		inline GLuint getBufferID() const;
-		inline void removeFromArray(bool status);
 	
-	private:
-		COpenGLDriver* Driver;
-
-		GLuint BufferID;
-		bool RemoveFromArray;
-
-		void* LinkedBuffer;
-	};
 
 	class COpenGLDriver : public CNullDriver, public IMaterialRendererServices, public COpenGLExtensionHandler
 	{
@@ -153,11 +91,8 @@ namespace video
 		//! presents the rendered scene on the screen, returns false if failed
 		virtual bool endScene() _IRR_OVERRIDE_;
 
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IIndexBuffer* indexBuffer) _IRR_OVERRIDE_;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IVertexBuffer* vertexBuffer) _IRR_OVERRIDE_;
-
-		void removeAllHardwareBuffers();
+	 
+ 
 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
@@ -545,9 +480,7 @@ namespace video
 		//! Active GLSL program
 		GLuint ActiveGLSLProgram;
 
-		//! Last used vertex descriptor
-		IVertexDescriptor* LastVertexDescriptor;
-		core::array<COpenGLHardwareBuffer*> HardwareBuffer;
+	 
 
 		#ifdef _IRR_WINDOWS_API_
 			HDC HDc; // Private GDI Device Context

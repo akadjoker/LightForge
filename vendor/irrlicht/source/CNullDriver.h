@@ -13,7 +13,6 @@
 #include "irrMap.h"
 #include "IAttributes.h"
 #include "IMesh.h"
-#include "IMeshBuffer.h"
 #include "ISceneNode.h"
 #include "CVertexDescriptor.h"
 #include "CFPSCounter.h"
@@ -329,27 +328,8 @@ namespace video
 				const core::position2d<s32>& pos,
 				const core::dimension2d<u32>& size) _IRR_OVERRIDE_;
 
-		//! Draws a mesh buffer
-		virtual void drawMeshBuffer(const scene::IMeshBuffer* mb) _IRR_OVERRIDE_;
-
-		//! Draws the normals of a mesh buffer
-		virtual void drawMeshBufferNormals(const scene::IMeshBuffer* mb, f32 length=10.f,
-			SColor color=0xffffffff) _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* addVertexDescriptor(const core::stringc& pName) _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* getVertexDescriptor(u32 id) const _IRR_OVERRIDE_;
-
-		virtual IVertexDescriptor* getVertexDescriptor(const core::stringc& pName) const _IRR_OVERRIDE_;
-
-		virtual u32 getVertexDescriptorCount() const _IRR_OVERRIDE_;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IIndexBuffer* indexBuffer) _IRR_OVERRIDE_;
-
-		virtual IHardwareBuffer* createHardwareBuffer(scene::IVertexBuffer* vertexBuffer) _IRR_OVERRIDE_;
-
-		virtual bool isHardwareBufferRecommend(const scene::IMeshBuffer* mb);
-
+ 
+		 
 		//! Create occlusion query.
 		/** Use node for identification and mesh for occlusion test. */
 		virtual void addOcclusionQuery(scene::ISceneNode* node,
@@ -770,7 +750,7 @@ namespace video
 		bool RangeFog;
 		bool AllowZWriteOnTransparent;
 
-		irr::core::array<IVertexDescriptor*> VertexDescriptor;
+ 
 
 		bool FeatureEnabled[video::EVDF_COUNT];
 

@@ -36,9 +36,8 @@ namespace irr
 
 		//! constructor
 		CSceneManager::CSceneManager(video::IVideoDriver *driver, io::IFileSystem *fs,
-									 gui::ICursorControl *cursorControl, IMeshCache *cache,
-									 gui::IGUIEnvironment *gui)
-			: ISceneNode(0, 0), Driver(driver), FileSystem(fs), GUIEnvironment(gui),
+									 gui::ICursorControl *cursorControl, IMeshCache *cache)
+			: ISceneNode(0, 0), Driver(driver), FileSystem(fs),
 			  CursorControl(cursorControl), CollisionManager(0),
 			  ActiveCamera(0), ShadowColor(150, 0, 0, 0), AmbientLight(0, 0, 0, 0),  
 			  MeshCache(cache), CurrentRendertime(ESNRP_NONE),
@@ -141,12 +140,7 @@ namespace irr
 			return Driver;
 		}
 
-		//! returns the GUI Environment
-		gui::IGUIEnvironment *CSceneManager::getGUIEnvironment()
-		{
-			return GUIEnvironment;
-		}
-
+		 
 		gui::ICursorControl *CSceneManager::getCursorControl()
 		{
 			return CursorControl;
@@ -1170,7 +1164,7 @@ namespace irr
 		//! Creates a new scene manager.
 		ISceneManager *CSceneManager::createNewSceneManager(bool cloneContent)
 		{
-			CSceneManager *manager = new CSceneManager(Driver, FileSystem, CursorControl, MeshCache, GUIEnvironment);
+			CSceneManager *manager = new CSceneManager(Driver, FileSystem, CursorControl, MeshCache);
 
 			if (cloneContent)
 				manager->cloneMembers(this, manager);
@@ -1193,10 +1187,9 @@ namespace irr
 
 		// creates a scenemanager
 		ISceneManager *createSceneManager(video::IVideoDriver *driver,
-										  io::IFileSystem *fs, gui::ICursorControl *cursorcontrol,
-										  gui::IGUIEnvironment *guiEnvironment)
+										  io::IFileSystem *fs, gui::ICursorControl *cursorcontrol )
 		{
-			return new CSceneManager(driver, fs, cursorcontrol, 0, guiEnvironment);
+			return new CSceneManager(driver, fs, cursorcontrol, 0);
 		}
 
 	} // end namespace scene

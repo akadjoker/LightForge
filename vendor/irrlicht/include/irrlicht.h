@@ -32,11 +32,7 @@
 #include "IrrCompileConfig.h"
 #include "aabbox3d.h"
 #include "IVertexDescriptor.h"
-#include "CVertexBuffer.h"
-#include "CIndexBuffer.h"
-#include "CMeshBuffer.h"
 #include "coreutil.h"
-#include "CVertexBuffer.h"
 #include "dimension2d.h"
 #include "ECullingTypes.h"
 #include "EDebugSceneTypes.h"
@@ -56,7 +52,7 @@
 #include "ICameraSceneNode.h"
 #include "ICursorControl.h"
 
-#include "IMeshBuffer.h"
+
 #include "IEventReceiver.h"
 #include "IFileList.h"
 #include "IFileSystem.h"
@@ -71,7 +67,7 @@
 #include "IMaterialRenderer.h"
 #include "IMaterialRendererServices.h"
 #include "IMesh.h"
-#include "IMeshBuffer.h"
+
  
 
 #include "IGPUProgrammingServices.h"
@@ -106,7 +102,6 @@
 #include "ITexture.h"
 #include "ITimer.h"
 #include "ITriangleSelector.h"
-#include "IVertexBuffer.h"
 #include "IVideoDriver.h"
 #include "IVideoModeList.h"
 
@@ -131,7 +126,6 @@
 #include "SKeyMap.h"
 #include "SLight.h"
 #include "SMaterial.h"
-#include "SMesh.h"
 #include "SViewFrustum.h"
 #include "triangle3d.h"
 #include "vector2d.h"

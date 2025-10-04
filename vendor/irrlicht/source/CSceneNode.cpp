@@ -18,39 +18,12 @@ namespace irr
 
             void MeshComponent::setColor(u8 r, u8 g, u8 b,u8 a)
             {
-                owner->getSceneManager()->getMeshManipulator()->setVertexColors(mesh,video::SColor(255,r,g,b));
+               // owner->getSceneManager()->getMeshManipulator()->setVertexColors(mesh,video::SColor(255,r,g,b));
             }
 
 
 
-            core::matrix4 TransformComponent::getLocalMatrix() const
-			{
-				core::matrix4 worldMatrix;
-				worldMatrix.setTranslation(position);
-
-				core::matrix4 rotMatrix;
-				rotMatrix.setRotationDegrees(rotation);
-
-				core::matrix4 scaleMatrix;
-				scaleMatrix.setScale(scale);
-
-				return worldMatrix * rotMatrix * scaleMatrix;
-			}
-
-			core::matrix4 TransformComponent::getWorldMatrix() const
-			{
-				core::matrix4 local = getLocalMatrix();
-				if (owner && owner->getParent())
-				{
-					ISceneNode *parent = owner->getParent();
-					TransformComponent *parentTransform = parent->getComponent<TransformComponent>();
-					if (parentTransform)
-						return parentTransform->getWorldMatrix() * local;
-				}
-
-				return local;
-			}
-
+          
         ISceneNode::ISceneNode(ISceneNode *parent, ISceneManager *mgr, s32 id,
                                const core::vector3df &position,
                                const core::vector3df &rotation,
@@ -117,7 +90,7 @@ namespace irr
         {
             if (IsVisible && IsStaticObject == false)
             {
-                TransformComponent* transform = getComponent<TransformComponent>();
+                //TransformComponent* transform = getComponent<TransformComponent>();
                 // If we have a transform component, update our relative transform from it
               
                 updateAbsolutePosition();
@@ -180,16 +153,10 @@ namespace irr
             //printf("render components: %d\n", components.size());
             video::IVideoDriver*    Driver = SceneManager->getVideoDriver();
             
-            TransformComponent *transform = getComponent<TransformComponent>();
+            //TransformComponent *transform = getComponent<TransformComponent>();
             MeshComponent *meshComp = getComponent<MeshComponent>();
 
-            
-            if (!transform  )  
-            {
-                    os::Printer::log("Missing transform component", ELL_ERROR);
-                    return;
-               
-            }
+          
             if (!meshComp )  
             {
                     os::Printer::log("Missing mesh component", ELL_ERROR);
@@ -210,21 +177,21 @@ namespace irr
             }
             
             // Set world transform
-            Driver->setTransform(video::ETS_WORLD, transform->getWorldMatrix());
+           // Driver->setTransform(video::ETS_WORLD, transform->getWorldMatrix());
 
             // Render each mesh buffer
-            const u32 cnt = meshComp->mesh->getMeshBufferCount();
-            for (u32 i = 0; i < cnt; ++i)
-            {
-                scene::IMeshBuffer *mb = meshComp->mesh->getMeshBuffer(i);
+            // const u32 cnt = meshComp->mesh->getMeshBufferCount();
+            // for (u32 i = 0; i < cnt; ++i)
+            // {
+            //     scene::IMeshBuffer *mb = meshComp->mesh->getMeshBuffer(i);
 
-                video::SMaterial mat = mb->getMaterial();
+            //     video::SMaterial mat = mb->getMaterial();
 
-                mat.MaterialType = (video::E_MATERIAL_TYPE)shaderMaterialToUse;
+            //     mat.MaterialType = (video::E_MATERIAL_TYPE)shaderMaterialToUse;
 
-              Driver->setMaterial(mat);
-              Driver->drawMeshBuffer(mb);
-            }
+            //   Driver->setMaterial(mat);
+            //   Driver->drawMeshBuffer(mb);
+            // }
 
             
 

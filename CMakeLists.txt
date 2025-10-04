@@ -11,5 +11,5 @@ add_subdirectory(vendor/ThirdParty)
 add_subdirectory(vendor/irrlicht)        
 
 # Apps
-add_subdirectory(teste)
+#add_subdirectory(teste)
 add_subdirectory(component_scene)
